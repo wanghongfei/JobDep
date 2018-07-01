@@ -5,8 +5,6 @@ import lombok.ToString;
 import org.apache.commons.collections4.CollectionUtils;
 
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -43,11 +41,13 @@ public class AdjTaskGraph implements Graph<JobVertex> {
         }
 
         // 找出最大的定点, 这个值决定了adj索引的长度
-        int maxVertex = edges.stream()
-                .flatMap( edge -> Arrays.stream(new JobVertex[]{edge.getFrom(), edge.getTo()}))
-                .max(Comparator.comparingInt(JobVertex::getIndex))
-                .get()
-                .getIndex();
+        int maxVertex = -1;
+        for (JobEdge edge : edges) {
+            int max = Math.max(edge.getFrom().getIndex(), edge.getTo().getIndex());
+            if (max > maxVertex) {
+                maxVertex = max;
+            }
+        }
 
         this.vertCount = maxVertex + 1;
 
