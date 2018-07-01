@@ -1,13 +1,16 @@
-package cn.fh.jobdep.test;
+package cn.fh.jobdep.test.other;
 
 import cn.fh.jobdep.graph.Graph;
-import cn.fh.jobdep.task.AdjTaskGraph;
-import cn.fh.jobdep.task.JobEdge;
-import cn.fh.jobdep.task.JobVertex;
+import cn.fh.jobdep.graph.AdjTaskGraph;
+import cn.fh.jobdep.graph.JobEdge;
+import cn.fh.jobdep.graph.JobVertex;
 import org.junit.Test;
+import org.yaml.snakeyaml.Yaml;
 
+import java.io.FileInputStream;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 public class AdjGraphTest {
     @Test
@@ -88,5 +91,12 @@ public class AdjGraphTest {
 
         System.out.println("the roots:" + graph.getRoots());
         System.out.println("the end:" + graph.getLast());
+    }
+
+    @Test
+    public void testLoadYaml() throws Exception {
+        Yaml yaml = new Yaml();
+        Map<String, Object> map = yaml.loadAs(new FileInputStream("src/test/resources/task.yaml"), Map.class);
+        System.out.println(map);
     }
 }

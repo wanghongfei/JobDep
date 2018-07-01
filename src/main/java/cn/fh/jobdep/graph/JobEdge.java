@@ -1,4 +1,4 @@
-package cn.fh.jobdep.task;
+package cn.fh.jobdep.graph;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

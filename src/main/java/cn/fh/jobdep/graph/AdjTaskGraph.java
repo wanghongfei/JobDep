@@ -1,8 +1,6 @@
-package cn.fh.jobdep.task;
+package cn.fh.jobdep.graph;
 
 import cn.fh.jobdep.error.JobException;
-import cn.fh.jobdep.graph.Graph;
-import cn.fh.jobdep.graph.Vertex;
 import lombok.ToString;
 import org.apache.commons.collections4.CollectionUtils;
 

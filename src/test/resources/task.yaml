@@ -1,0 +1,41 @@
+
+job0:
+  triggerUrl: "trigger"
+  notifyUrl: "notify"
+  next:
+    - job2
+    - job3
+
+job1:
+  triggerUrl: "trigger"
+  notifyUrl: "notify"
+  next:
+    - job3
+
+job2:
+  triggerUrl: "trigger"
+  notifyUrl: "notify"
+  next:
+    - job4
+
+job3:
+  triggerUrl: "trigger"
+  notifyUrl: "notify"
+  next:
+    - job5
+
+job4:
+  triggerUrl: "trigger"
+  notifyUrl: "notify"
+  next:
+    - job6
+
+job5:
+  triggerUrl: "trigger"
+  notifyUrl: "notify"
+  next:
+    - job6
+
+job6:
+  triggerUrl: "trigger"
+  notifyUrl: "notify"

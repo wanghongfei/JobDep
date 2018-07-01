@@ -1,6 +1,5 @@
-package cn.fh.jobdep.task;
+package cn.fh.jobdep.graph;
 
-import cn.fh.jobdep.graph.Vertex;
 import lombok.Data;
 
 import java.util.ArrayList;
@@ -12,6 +11,8 @@ import java.util.List;
 @Data
 public class JobVertex implements Vertex {
     private Integer index;
+
+    private String name;
 
     private String triggerUrl;
 
@@ -25,6 +26,15 @@ public class JobVertex implements Vertex {
         this.index = index;
         this.triggerUrl = triggerUrl;
         this.notifyUrl = notifyUrl;
+    }
+
+    public JobVertex(Integer index, String name) {
+        this.index = index;
+        this.name = name;
+    }
+
+    public JobVertex() {
+
     }
 
     protected void addToVertex(JobVertex vertex) {

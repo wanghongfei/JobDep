@@ -1,7 +1,5 @@
 package cn.fh.jobdep.graph;
 
-import cn.fh.jobdep.task.JobStatus;
-
 import java.util.List;
 
 /**
