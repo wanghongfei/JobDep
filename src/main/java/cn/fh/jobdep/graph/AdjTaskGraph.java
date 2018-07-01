@@ -24,6 +24,11 @@ public class AdjTaskGraph implements Graph<JobVertex> {
      */
     private JobVertex[] reversedAdj;
 
+    /**
+     * 顶点数量
+     */
+    private int vertCount;
+
     private AdjTaskGraph() {
 
     }
@@ -44,9 +49,10 @@ public class AdjTaskGraph implements Graph<JobVertex> {
                 .get()
                 .getIndex();
 
-        int maxLen = maxVertex + 1;
-        this.adj = new JobVertex[maxLen];
-        this.reversedAdj = new JobVertex[maxLen];
+        this.vertCount = maxVertex + 1;
+
+        this.adj = new JobVertex[vertCount];
+        this.reversedAdj = new JobVertex[vertCount];
 
         // 遍历edge
         for (JobEdge edge : edges) {
@@ -89,7 +95,7 @@ public class AdjTaskGraph implements Graph<JobVertex> {
         List<JobVertex> result = new ArrayList<>();
         for (JobVertex job : this.reversedAdj) {
             if (CollectionUtils.isEmpty(job.getToList())) {
-                result.add(job);
+                result.add(this.adj[job.getIndex()]);
             }
         }
 
@@ -97,14 +103,36 @@ public class AdjTaskGraph implements Graph<JobVertex> {
     }
 
     @Override
-    public Vertex getLast() {
+    public List<JobVertex> getLasts() {
+        List<JobVertex> result = new ArrayList<>(2);
+
         for (JobVertex job : this.adj) {
             if (CollectionUtils.isEmpty(job.getToList())) {
-                return job;
+                result.add(job);
             }
         }
 
-        return null;
+        return result;
+    }
+
+    /**
+     * 深度优先遍历
+     * @param vert
+     * @param visited
+     */
+    private void bfs(JobVertex vert, boolean[] visited) {
+        // 标记当前顶点为已访问
+        visited[vert.getIndex()] = true;
+
+        // 取出后序顶点
+        List<JobVertex> nextList = vert.getToList();
+        if (CollectionUtils.isEmpty(nextList)) {
+            return;
+        }
+
+        for (JobVertex next : nextList) {
+            bfs(next, visited);
+        }
     }
 
     private void addEdge(JobEdge edge, JobVertex[] adj) {

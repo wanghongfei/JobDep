@@ -28,10 +28,10 @@ public interface Graph<T extends Vertex> {
     List<T> getRoots();
 
     /**
-     * 得到终结点
+     * 得到全部叶子结点
      * @return
      */
-    Vertex getLast();
+    List<T> getLasts();
 
     /**
      * 改变指定节点状态

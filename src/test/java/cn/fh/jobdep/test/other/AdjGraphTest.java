@@ -1,7 +1,7 @@
 package cn.fh.jobdep.test.other;
 
-import cn.fh.jobdep.graph.Graph;
 import cn.fh.jobdep.graph.AdjTaskGraph;
+import cn.fh.jobdep.graph.Graph;
 import cn.fh.jobdep.graph.JobEdge;
 import cn.fh.jobdep.graph.JobVertex;
 import org.junit.Test;
@@ -44,7 +44,7 @@ public class AdjGraphTest {
         System.out.println("the child of 3:" + graph.getChildren(3));
 
         System.out.println("the roots:" + graph.getRoots());
-        System.out.println("the end:" + graph.getLast());
+        System.out.println("the end:" + graph.getLasts());
     }
 
     @Test
@@ -77,6 +77,12 @@ public class AdjGraphTest {
                 new JobEdge(
                         new JobVertex(5, "-", "-"),
                         new JobVertex(6, "-", "-")
+                ),
+
+                // orphan
+                new JobEdge(
+                        new JobVertex(7, "-", "-"),
+                        new JobVertex(8, "-", "-")
                 )
         );
 
@@ -90,7 +96,8 @@ public class AdjGraphTest {
         System.out.println("the child of 3:" + graph.getChildren(3));
 
         System.out.println("the roots:" + graph.getRoots());
-        System.out.println("the end:" + graph.getLast());
+        System.out.println("the end:" + graph.getLasts());
+
     }
 
     @Test
