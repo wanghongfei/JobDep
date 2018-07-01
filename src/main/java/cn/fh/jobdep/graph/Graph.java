@@ -34,6 +34,12 @@ public interface Graph<T extends Vertex> {
     List<T> getLasts();
 
     /**
+     * 图中是否有环
+     * @return
+     */
+    boolean hasCircle();
+
+    /**
      * 改变指定节点状态
      * @param vertex
      * @param status

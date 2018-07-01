@@ -115,24 +115,53 @@ public class AdjTaskGraph implements Graph<JobVertex> {
         return result;
     }
 
+    public boolean hasCircle() {
+        List<JobVertex> roots = getRoots();
+
+        for (JobVertex root : roots) {
+            boolean[] visited = new boolean[this.vertCount];
+            boolean cycle = bfs(root, visited);
+
+            if (cycle) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     /**
      * 深度优先遍历
      * @param vert
      * @param visited
      */
-    private void bfs(JobVertex vert, boolean[] visited) {
+    private boolean bfs(JobVertex vert, boolean[] visited) {
         // 标记当前顶点为已访问
-        visited[vert.getIndex()] = true;
+        int currentIndex = vert.getIndex();
+        visited[currentIndex] = true;
 
         // 取出后序顶点
-        List<JobVertex> nextList = vert.getToList();
+        List<JobVertex> nextList = this.adj[currentIndex].getToList();
         if (CollectionUtils.isEmpty(nextList)) {
-            return;
+            visited[currentIndex] = false;
+            return false;
         }
 
         for (JobVertex next : nextList) {
-            bfs(next, visited);
+            // 判断下一个节点是否访问过
+            if (visited[next.getIndex()]) {
+                // 访问过, 有环
+                return true;
+            }
+
+            boolean circle = bfs(next, visited);
+            if (circle) {
+                return true;
+            }
         }
+
+        visited[currentIndex] = false;
+        return false;
     }
 
     private void addEdge(JobEdge edge, JobVertex[] adj) {

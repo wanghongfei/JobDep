@@ -45,6 +45,7 @@ public class AdjGraphTest {
 
         System.out.println("the roots:" + graph.getRoots());
         System.out.println("the end:" + graph.getLasts());
+        System.out.println(graph.hasCircle());
     }
 
     @Test
@@ -97,6 +98,38 @@ public class AdjGraphTest {
 
         System.out.println("the roots:" + graph.getRoots());
         System.out.println("the end:" + graph.getLasts());
+        System.out.println(graph.hasCircle());
+
+    }
+
+    @Test
+    public void testCycle() {
+        List<JobEdge> edges = Arrays.asList(
+                new JobEdge(
+                        new JobVertex(0, "-", "-"),
+                        new JobVertex(1, "-", "-")
+                ),
+                new JobEdge(
+                        new JobVertex(1, "-", "-"),
+                        new JobVertex(2, "-", "-")
+                ),
+                new JobEdge(
+                        new JobVertex(2, "-", "-"),
+                        new JobVertex(3, "-", "-")
+                ),
+                new JobEdge(
+                        new JobVertex(3, "-", "-"),
+                        new JobVertex(4, "-", "-")
+                ),
+                new JobEdge(
+                        new JobVertex(4, "-", "-"),
+                        new JobVertex(2, "-", "-")
+                )
+        );
+
+        Graph graph = new AdjTaskGraph(edges);
+        System.out.println(graph);
+        System.out.println(graph.hasCircle());
 
     }
 
