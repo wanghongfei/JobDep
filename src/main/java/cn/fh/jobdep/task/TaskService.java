@@ -1,5 +1,6 @@
 package cn.fh.jobdep.task;
 
+import cn.fh.jobdep.error.JobException;
 import cn.fh.jobdep.graph.AdjTaskGraph;
 import cn.fh.jobdep.graph.Graph;
 import cn.fh.jobdep.graph.JobEdge;
@@ -16,7 +17,20 @@ import java.util.Set;
 @Service
 public class TaskService {
 
+    /**
+     * 将yaml配置转成DAG
+     *
+     * @param yaml
+     * @return
+     */
     public Graph buildTaskGraph(String yaml) {
+        Graph taskGraph = parseYaml(yaml);
+        validateGraph(taskGraph);
+
+        return taskGraph;
+    }
+
+    private Graph parseYaml(String yaml) {
         // 解析yaml
         Yaml parser = new Yaml();
         Map<String, Object> yamlMap = parser.loadAs(yaml, Map.class);
@@ -48,10 +62,7 @@ public class TaskService {
                 continue;
             }
             for (String nextJob : nextJobList) {
-                edgeMap.computeIfAbsent(jobName, key -> {
-                    return new ArrayList<>();
-                })
-                .add(nextJob);
+                edgeMap.computeIfAbsent(jobName, key -> new ArrayList<>()).add(nextJob);
             }
         }
 
@@ -71,8 +82,17 @@ public class TaskService {
             }
         }
 
-        Graph taskGraph = new AdjTaskGraph(edgeList);
-        return taskGraph;
+        return new AdjTaskGraph(edgeList);
+    }
+
+    private void validateGraph(Graph g) {
+        if (g.hasCircle()) {
+            throw new JobException("circle in graph");
+        }
+
+        if (g.getLasts().size() != 1) {
+            throw new JobException("graph does not end with single vertex");
+        }
     }
 
     private Map<String, Integer> allocateJobId(Set<String> nameSet) {
