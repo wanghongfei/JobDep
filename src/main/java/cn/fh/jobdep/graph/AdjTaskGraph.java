@@ -1,6 +1,7 @@
 package cn.fh.jobdep.graph;
 
 import cn.fh.jobdep.error.JobException;
+import com.alibaba.fastjson.JSONObject;
 import lombok.ToString;
 import org.apache.commons.collections4.CollectionUtils;
 
@@ -232,23 +233,32 @@ public class AdjTaskGraph {
     }
 
     private void addEdge(JobEdge edge, JobVertex[] adj) {
-        JobVertex from = edge.getFrom().clone();
-        JobVertex to = edge.getTo().clone();
+        JobVertex from = edge.getFrom();
+        JobVertex to = edge.getTo();
 
         int slotIndex = from.getIndex();
         if (null == adj[slotIndex]) {
-            adj[slotIndex] = from;
+            adj[slotIndex] = from.clone();
         }
         adj[slotIndex].addToVertex(to);
 
         slotIndex = to.getIndex();
         if (null == adj[slotIndex]) {
-            adj[slotIndex] = to;
+            adj[slotIndex] = to.clone();
         }
 
     }
 
     private boolean rangeCheck(int vertex) {
         return vertex <= this.adj.length + 1;
+    }
+
+    public String toJson() {
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("adj", this.adj);
+        jsonObject.put("vertCount", this.vertCount);
+        jsonObject.put("status", this.status);
+
+        return jsonObject.toJSONString();
     }
 }
