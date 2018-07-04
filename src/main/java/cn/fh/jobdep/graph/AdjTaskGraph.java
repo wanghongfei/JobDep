@@ -1,7 +1,10 @@
 package cn.fh.jobdep.graph;
 
 import cn.fh.jobdep.error.JobException;
-import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.JSON;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.ToString;
 import org.apache.commons.collections4.CollectionUtils;
 
@@ -35,6 +38,13 @@ public class AdjTaskGraph {
 
     private AdjTaskGraph() {
 
+    }
+
+    private AdjTaskGraph(GraphWrapper wrapper) {
+        this.adj = wrapper.adj;
+        this.reversedAdj = wrapper.reversedAdj;
+        this.vertCount = wrapper.vertCount;
+        this.status = wrapper.status;
     }
 
     /**
@@ -184,6 +194,25 @@ public class AdjTaskGraph {
         this.status = status;
     }
 
+    /**
+     * 将adj转成json表示形式
+     * @return
+     */
+    public String toJson() {
+        GraphWrapper wrapper = new GraphWrapper(this.adj, this.reversedAdj, this.vertCount, this.status);
+        return JSON.toJSONString(wrapper);
+    }
+
+    /**
+     * 将json解析成adj
+     * @param json
+     * @return
+     */
+    public static AdjTaskGraph fromJson(String json) {
+        GraphWrapper wrapper = JSON.parseObject(json, GraphWrapper.class);
+        return wrapper.toGraph();
+    }
+
     private void doSetResult(int vertex, String result, JobVertex[] adj) {
         for (JobVertex job : adj) {
             if (job.getIndex() == vertex) {
@@ -253,12 +282,21 @@ public class AdjTaskGraph {
         return vertex <= this.adj.length + 1;
     }
 
-    public String toJson() {
-        JSONObject jsonObject = new JSONObject();
-        jsonObject.put("adj", this.adj);
-        jsonObject.put("vertCount", this.vertCount);
-        jsonObject.put("status", this.status);
 
-        return jsonObject.toJSONString();
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class GraphWrapper {
+        private JobVertex[] adj;
+
+        private JobVertex[] reversedAdj;
+
+        private int vertCount;
+
+        private volatile JobStatus status;
+
+        public AdjTaskGraph toGraph() {
+            return new AdjTaskGraph(this);
+        }
     }
 }

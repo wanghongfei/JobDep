@@ -129,7 +129,6 @@ public class AdjGraphTest {
         AdjTaskGraph graph = new AdjTaskGraph(edges);
         System.out.println(graph);
         System.out.println(graph.hasCircle());
-
     }
 
     @Test
