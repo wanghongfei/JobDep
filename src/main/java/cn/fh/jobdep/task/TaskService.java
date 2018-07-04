@@ -4,7 +4,15 @@ import cn.fh.jobdep.error.JobException;
 import cn.fh.jobdep.graph.AdjTaskGraph;
 import cn.fh.jobdep.graph.Graph;
 import cn.fh.jobdep.graph.JobEdge;
+import cn.fh.jobdep.graph.JobStatus;
 import cn.fh.jobdep.graph.JobVertex;
+import cn.fh.jobdep.task.store.MemoryTaskStore;
+import cn.fh.jobdep.task.vo.NotifyRequest;
+import cn.fh.jobdep.task.vo.TriggerData;
+import com.alibaba.fastjson.JSON;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections4.CollectionUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.yaml.snakeyaml.Yaml;
 
@@ -13,9 +21,16 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 public class TaskService {
+    @Autowired
+    private MemoryTaskStore taskStore;
+
+    @Autowired
+    private HttpService httpService;
 
     /**
      * 将yaml配置转成DAG
@@ -28,6 +43,94 @@ public class TaskService {
         validateGraph(taskGraph);
 
         return taskGraph;
+    }
+
+    /**
+     * 触发后序job; 如果已经是最后一个job了, 则触发通知;
+     * 在收到job完成请求时调用;
+     *
+     * @param taskId
+     * @param jobId
+     * @param success
+     * @param lastJobResult
+     * @return 有新任务触发返回true
+     */
+    public boolean triggerNextJobs(Long taskId, Integer jobId, boolean success, String lastJobResult) {
+        // 取出任务图
+        AdjTaskGraph g = taskStore.getTaskGraph(taskId);
+        if (null == g) {
+            throw new JobException("invalid taskId");
+        }
+
+        if (!success) {
+            // 任务失败
+            g.changeStatus(jobId, JobStatus.FAILED);
+            triggerNotify(jobId, g);
+            log.warn("job {} failed", jobId);
+            return false;
+        }
+
+        // 设置此job任务结果
+        g.setResult(jobId, lastJobResult);
+        g.changeStatus(jobId, JobStatus.FINISHED);
+
+        // 取出后续job
+        List<JobVertex> nextJobList = g.getChildren(jobId);
+        if (CollectionUtils.isEmpty(nextJobList)) {
+            // 没有后序任务了
+            // 触发成功通知
+            triggerNotify(jobId, g);
+            return false;
+        }
+
+        // 遍历后续job
+        for (JobVertex job : nextJobList) {
+            // 判断是否所有前序job都完成了
+            List<JobVertex> preJobList = g.getParents(job.getIndex());
+
+            if (!isAllFinished(preJobList)) {
+                // 没都完成, 不能触发
+                continue;
+            }
+
+            // 可以触发
+            triggerJob(job, preJobList);
+        }
+
+        return true;
+    }
+
+    private void triggerNotify(Integer vertex, AdjTaskGraph g) {
+        JobVertex job = g.getJobVertex(vertex);
+        if (job.getStatus() == JobStatus.FINISHED) {
+            // 成功
+            NotifyRequest req = new NotifyRequest(0, job.getResult());
+            httpService.sendRequest(job.getNotifyUrl(), JSON.toJSONString(req));
+
+        } else {
+            NotifyRequest req = new NotifyRequest(-1, "");
+            httpService.sendRequest(job.getNotifyUrl(), JSON.toJSONString(req));
+        }
+    }
+
+    private void triggerJob(JobVertex job, List<JobVertex> preJobList) {
+        // 将前序job结果组合起来
+        List<TriggerData> triggerDataList = preJobList.stream()
+                .map( j -> new TriggerData(j.getName(), j.getResult()))
+                .collect(Collectors.toList());
+
+        // 触发任务
+        String resp = httpService.sendRequest(job.getNotifyUrl(), JSON.toJSONString(triggerDataList));
+        log.info("trigger job {}, response = {}", job.getName(), resp);
+    }
+
+
+    private boolean isAllFinished(List<JobVertex> jobList) {
+        if (CollectionUtils.isEmpty(jobList)) {
+            return true;
+        }
+
+        return jobList.stream().allMatch(job -> job.getStatus() == JobStatus.FINISHED);
     }
 
     private Graph parseYaml(String yaml) {

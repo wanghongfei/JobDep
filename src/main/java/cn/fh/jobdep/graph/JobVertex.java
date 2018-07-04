@@ -18,6 +18,11 @@ public class JobVertex implements Vertex {
 
     private String notifyUrl;
 
+    /**
+     * 保存job结果
+     */
+    private String result;
+
     private volatile JobStatus status = JobStatus.NEW;
 
     private List<JobVertex> toList = new ArrayList<>();

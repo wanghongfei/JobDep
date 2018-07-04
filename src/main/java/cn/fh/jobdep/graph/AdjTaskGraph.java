@@ -115,6 +115,33 @@ public class AdjTaskGraph implements Graph<JobVertex> {
         return result;
     }
 
+    public void setResult(int vertex, String result) {
+        doSetResult(vertex, result, this.adj);
+        doSetResult(vertex, result, this.reversedAdj);
+    }
+
+    public JobVertex getJobVertex(int vertex) {
+        if (!rangeCheck(vertex)) {
+            return null;
+        }
+
+        return this.adj[vertex];
+    }
+
+    private void doSetResult(int vertex, String result, JobVertex[] adj) {
+        for (JobVertex job : adj) {
+            if (job.getIndex() == vertex) {
+                job.setResult(result);
+            }
+
+            for (JobVertex next : job.getToList()) {
+                if (next.getIndex() == vertex) {
+                    next.setResult(result);
+                }
+            }
+        }
+    }
+
     public boolean hasCircle() {
         List<JobVertex> roots = getRoots();
 
