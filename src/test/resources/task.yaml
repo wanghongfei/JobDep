@@ -1,41 +1,34 @@
-
 job0:
-  triggerUrl: "trigger"
-  notifyUrl: "notify"
+  triggerUrl: "http://job0.com/trigger"
   next:
     - job2
     - job3
 
 job1:
-  triggerUrl: "trigger"
-  notifyUrl: "notify"
+  triggerUrl: "http://job1.com/trigger"
   next:
     - job3
 
 job2:
-  triggerUrl: "trigger"
-  notifyUrl: "notify"
+  triggerUrl: "http://job2.com/trigger"
   next:
     - job4
 
 job3:
-  triggerUrl: "trigger"
-  notifyUrl: "notify"
+  triggerUrl: "http://job3.com/trigger"
   next:
     - job5
 
 job4:
-  triggerUrl: "trigger"
-  notifyUrl: "notify"
+  triggerUrl: "http://job4.com/trigger"
   next:
     - job6
 
 job5:
-  triggerUrl: "trigger"
-  notifyUrl: "notify"
+  triggerUrl: "http://job5.com/trigger"
   next:
     - job6
 
 job6:
   triggerUrl: "trigger"
-  notifyUrl: "notify"
+  notifyUrl: "http://job6.com/notify"

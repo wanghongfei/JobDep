@@ -1,5 +1,6 @@
 package cn.fh.jobdep.task;
 
+import cn.fh.jobdep.api.vo.SubmitInfo;
 import cn.fh.jobdep.error.JobException;
 import cn.fh.jobdep.graph.AdjTaskGraph;
 import cn.fh.jobdep.graph.JobEdge;
@@ -32,6 +33,23 @@ public class TaskService {
     private HttpService httpService;
 
     /**
+     * 触发任务图;
+     *
+     * @param yaml
+     */
+    public SubmitInfo startTask(String yaml) {
+        AdjTaskGraph graph = buildTaskGraph(yaml);
+        Long gid = saveGraph(graph);
+
+        List<JobVertex> roots = graph.getRoots();
+        for (JobVertex job : roots) {
+            triggerNextJobs(gid, job.getIndex(), true, "");
+        }
+
+        return new SubmitInfo(gid);
+    }
+
+    /**
      * 将yaml配置转成DAG
      *
      * @param yaml
@@ -43,6 +61,7 @@ public class TaskService {
 
         return taskGraph;
     }
+
 
     /**
      * 保存任务图
@@ -72,7 +91,7 @@ public class TaskService {
 
         if (!success) {
             // 任务失败
-            g.changeStatus(jobId, JobStatus.FAILED);
+            g.changeJobStatus(jobId, JobStatus.FAILED);
             log.info("trigger failed nofity for job {}", jobId);
             triggerNotify(jobId, g);
             return false;
@@ -80,7 +99,7 @@ public class TaskService {
 
         // 设置此job任务结果
         g.setResult(jobId, lastJobResult);
-        g.changeStatus(jobId, JobStatus.FINISHED);
+        g.changeJobStatus(jobId, JobStatus.FINISHED);
         log.info("job {} marked as finished, result = {}", jobId, lastJobResult);
 
         // 取出后续job
@@ -117,10 +136,12 @@ public class TaskService {
             // 成功
             NotifyRequest req = new NotifyRequest(0, job.getResult());
             httpService.sendRequest(job.getNotifyUrl(), JSON.toJSONString(req));
+            g.changeTaskStatus(JobStatus.FINISHED);
 
         } else {
             NotifyRequest req = new NotifyRequest(-1, "");
             httpService.sendRequest(job.getNotifyUrl(), JSON.toJSONString(req));
+            g.changeTaskStatus(JobStatus.FAILED);
         }
     }
 
@@ -153,8 +174,9 @@ public class TaskService {
         Map<String, Integer> jobIdMap = allocateJobId(yamlMap.keySet());
 
         // 生成顶点
-        // jobName -> job
+        // jobName -> job对象
         Map<String, JobVertex> jobMap = new HashMap<>();
+
         // 生成边父子关系
         // jobName -> next job name List
         Map<String, List<String>> edgeMap = new HashMap<>();

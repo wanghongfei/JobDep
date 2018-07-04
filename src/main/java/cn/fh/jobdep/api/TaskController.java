@@ -2,6 +2,8 @@ package cn.fh.jobdep.api;
 
 import cn.fh.jobdep.api.vo.DepResponse;
 import cn.fh.jobdep.api.vo.FinishRequest;
+import cn.fh.jobdep.api.vo.SubmitInfo;
+import cn.fh.jobdep.api.vo.SubmitRequest;
 import cn.fh.jobdep.task.TaskService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -20,5 +22,12 @@ public class TaskController extends BaseController {
         taskService.triggerNextJobs(req.getTaskId(), req.getJobId(), req.getSuccess(), req.getResult());
 
         return succResp;
+    }
+
+    @PostMapping(value = "/submit")
+    public DepResponse<SubmitInfo> startTask(@RequestBody SubmitRequest req) {
+        SubmitInfo info = taskService.startTask(req.getYaml());
+
+        return new DepResponse<>(info);
     }
 }

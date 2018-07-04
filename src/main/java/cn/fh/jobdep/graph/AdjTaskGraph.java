@@ -27,6 +27,11 @@ public class AdjTaskGraph {
      */
     private int vertCount;
 
+    /**
+     * 整个Task的运行状态
+     */
+    private volatile JobStatus status = JobStatus.NEW;
+
     private AdjTaskGraph() {
 
     }
@@ -92,7 +97,7 @@ public class AdjTaskGraph {
      * @param vertex
      * @param status
      */
-    public void changeStatus(int vertex, JobStatus status) {
+    public void changeJobStatus(int vertex, JobStatus status) {
         if (!rangeCheck(vertex)) {
             return;
         }
@@ -155,6 +160,29 @@ public class AdjTaskGraph {
         return this.adj[vertex];
     }
 
+    /**
+     * 判断图是否有环
+     * @return
+     */
+    public boolean hasCircle() {
+        List<JobVertex> roots = getRoots();
+
+        for (JobVertex root : roots) {
+            boolean[] visited = new boolean[this.vertCount];
+            boolean cycle = dfs(root, visited);
+
+            if (cycle) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public void changeTaskStatus(JobStatus status) {
+        this.status = status;
+    }
+
     private void doSetResult(int vertex, String result, JobVertex[] adj) {
         for (JobVertex job : adj) {
             if (job.getIndex() == vertex) {
@@ -170,30 +198,11 @@ public class AdjTaskGraph {
     }
 
     /**
-     * 判断图是否有环
-     * @return
-     */
-    public boolean hasCircle() {
-        List<JobVertex> roots = getRoots();
-
-        for (JobVertex root : roots) {
-            boolean[] visited = new boolean[this.vertCount];
-            boolean cycle = bfs(root, visited);
-
-            if (cycle) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /**
      * 深度优先遍历
      * @param vert
      * @param visited
      */
-    private boolean bfs(JobVertex vert, boolean[] visited) {
+    private boolean dfs(JobVertex vert, boolean[] visited) {
         // 标记当前顶点为已访问
         int currentIndex = vert.getIndex();
         visited[currentIndex] = true;
@@ -212,7 +221,7 @@ public class AdjTaskGraph {
                 return true;
             }
 
-            boolean circle = bfs(next, visited);
+            boolean circle = dfs(next, visited);
             if (circle) {
                 return true;
             }
