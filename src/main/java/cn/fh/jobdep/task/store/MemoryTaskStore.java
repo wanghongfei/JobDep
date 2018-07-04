@@ -25,4 +25,9 @@ public class MemoryTaskStore implements TaskStore<AdjTaskGraph> {
 
         return id;
     }
+
+    @Override
+    public boolean updateTask(Long taskId, AdjTaskGraph graph) {
+        return false;
+    }
 }

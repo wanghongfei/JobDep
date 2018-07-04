@@ -13,4 +13,6 @@ public interface TaskStore<T> {
      * @param graph
      */
     Long saveTask(T graph);
+
+    boolean updateTask(Long taskId, T graph);
 }
