@@ -2,11 +2,10 @@ package cn.fh.jobdep.task;
 
 import cn.fh.jobdep.error.JobException;
 import cn.fh.jobdep.graph.AdjTaskGraph;
-import cn.fh.jobdep.graph.Graph;
 import cn.fh.jobdep.graph.JobEdge;
 import cn.fh.jobdep.graph.JobStatus;
 import cn.fh.jobdep.graph.JobVertex;
-import cn.fh.jobdep.task.store.MemoryTaskStore;
+import cn.fh.jobdep.task.store.TaskStore;
 import cn.fh.jobdep.task.vo.NotifyRequest;
 import cn.fh.jobdep.task.vo.TriggerData;
 import com.alibaba.fastjson.JSON;
@@ -27,7 +26,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class TaskService {
     @Autowired
-    private MemoryTaskStore taskStore;
+    private TaskStore<AdjTaskGraph> taskStore;
 
     @Autowired
     private HttpService httpService;
@@ -38,11 +37,20 @@ public class TaskService {
      * @param yaml
      * @return
      */
-    public Graph buildTaskGraph(String yaml) {
-        Graph taskGraph = parseYaml(yaml);
+    public AdjTaskGraph buildTaskGraph(String yaml) {
+        AdjTaskGraph taskGraph = parseYaml(yaml);
         validateGraph(taskGraph);
 
         return taskGraph;
+    }
+
+    /**
+     * 保存任务图
+     * @param g
+     * @return
+     */
+    public Long saveGraph(AdjTaskGraph g) {
+        return taskStore.saveTask(g);
     }
 
     /**
@@ -65,20 +73,22 @@ public class TaskService {
         if (!success) {
             // 任务失败
             g.changeStatus(jobId, JobStatus.FAILED);
+            log.info("trigger failed nofity for job {}", jobId);
             triggerNotify(jobId, g);
-            log.warn("job {} failed", jobId);
             return false;
         }
 
         // 设置此job任务结果
         g.setResult(jobId, lastJobResult);
         g.changeStatus(jobId, JobStatus.FINISHED);
+        log.info("job {} marked as finished, result = {}", jobId, lastJobResult);
 
         // 取出后续job
         List<JobVertex> nextJobList = g.getChildren(jobId);
         if (CollectionUtils.isEmpty(nextJobList)) {
             // 没有后序任务了
             // 触发成功通知
+            log.info("trigger success nofity for job {}", jobId);
             triggerNotify(jobId, g);
             return false;
         }
@@ -90,6 +100,7 @@ public class TaskService {
 
             if (!isAllFinished(preJobList)) {
                 // 没都完成, 不能触发
+                log.info("job {} does not qualify", job.getName());
                 continue;
             }
 
@@ -133,7 +144,7 @@ public class TaskService {
         return jobList.stream().allMatch(job -> job.getStatus() == JobStatus.FINISHED);
     }
 
-    private Graph parseYaml(String yaml) {
+    private AdjTaskGraph parseYaml(String yaml) {
         // 解析yaml
         Yaml parser = new Yaml();
         Map<String, Object> yamlMap = parser.loadAs(yaml, Map.class);
@@ -188,7 +199,7 @@ public class TaskService {
         return new AdjTaskGraph(edgeList);
     }
 
-    private void validateGraph(Graph g) {
+    private void validateGraph(AdjTaskGraph g) {
         if (g.hasCircle()) {
             throw new JobException("circle in graph");
         }

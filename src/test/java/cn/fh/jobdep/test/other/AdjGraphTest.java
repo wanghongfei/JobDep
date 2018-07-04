@@ -1,7 +1,6 @@
 package cn.fh.jobdep.test.other;
 
 import cn.fh.jobdep.graph.AdjTaskGraph;
-import cn.fh.jobdep.graph.Graph;
 import cn.fh.jobdep.graph.JobEdge;
 import cn.fh.jobdep.graph.JobVertex;
 import org.junit.Test;
@@ -34,7 +33,7 @@ public class AdjGraphTest {
                 )
         );
 
-        Graph graph = new AdjTaskGraph(edges);
+        AdjTaskGraph graph = new AdjTaskGraph(edges);
         System.out.println(graph);
 
         System.out.println("the child of 0:" + graph.getChildren(0));
@@ -87,7 +86,7 @@ public class AdjGraphTest {
                 )
         );
 
-        Graph graph = new AdjTaskGraph(edges);
+       AdjTaskGraph graph = new AdjTaskGraph(edges);
         System.out.println(graph);
 
         System.out.println("the child of 0:" + graph.getChildren(0));
@@ -127,7 +126,7 @@ public class AdjGraphTest {
                 )
         );
 
-        Graph graph = new AdjTaskGraph(edges);
+        AdjTaskGraph graph = new AdjTaskGraph(edges);
         System.out.println(graph);
         System.out.println(graph.hasCircle());
 

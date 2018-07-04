@@ -11,7 +11,7 @@ import java.util.List;
  * 任务(Task), 由多个有依赖关系的Job组成, 对应一张图
  */
 @ToString
-public class AdjTaskGraph implements Graph<JobVertex> {
+public class AdjTaskGraph {
     /**
      * 邻接表
      */
@@ -62,7 +62,6 @@ public class AdjTaskGraph implements Graph<JobVertex> {
     }
 
 
-    @Override
     public List<JobVertex> getChildren(int vertex) {
         if (!rangeCheck(vertex)) {
             return null;
@@ -71,7 +70,6 @@ public class AdjTaskGraph implements Graph<JobVertex> {
         return this.adj[vertex].getToList();
     }
 
-    @Override
     public List<JobVertex> getParents(int vertex) {
         if (!rangeCheck(vertex)) {
             return null;
@@ -80,7 +78,6 @@ public class AdjTaskGraph implements Graph<JobVertex> {
         return this.reversedAdj[vertex].getToList();
     }
 
-    @Override
     public void changeStatus(int vertex, JobStatus status) {
         if (!rangeCheck(vertex)) {
             return;
@@ -90,7 +87,6 @@ public class AdjTaskGraph implements Graph<JobVertex> {
         this.reversedAdj[vertex].setStatus(status);
     }
 
-    @Override
     public List<JobVertex> getRoots() {
         List<JobVertex> result = new ArrayList<>();
         for (JobVertex job : this.reversedAdj) {
@@ -102,7 +98,6 @@ public class AdjTaskGraph implements Graph<JobVertex> {
         return result;
     }
 
-    @Override
     public List<JobVertex> getLasts() {
         List<JobVertex> result = new ArrayList<>(2);
 

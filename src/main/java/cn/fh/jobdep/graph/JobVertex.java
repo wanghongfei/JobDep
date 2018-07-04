@@ -27,6 +27,11 @@ public class JobVertex implements Vertex {
 
     private List<JobVertex> toList = new ArrayList<>();
 
+    public JobVertex(Integer index, String name, String triggerUrl, String notifyUrl) {
+        this(index, triggerUrl, notifyUrl);
+        this.name = name;
+    }
+
     public JobVertex(Integer index, String triggerUrl, String notifyUrl) {
         this.index = index;
         this.triggerUrl = triggerUrl;
@@ -54,7 +59,7 @@ public class JobVertex implements Vertex {
 
     @Override
     public JobVertex clone() {
-        JobVertex vertex = new JobVertex(index, triggerUrl, notifyUrl);
+        JobVertex vertex = new JobVertex(index, name, triggerUrl, notifyUrl);
 
         return vertex;
     }
