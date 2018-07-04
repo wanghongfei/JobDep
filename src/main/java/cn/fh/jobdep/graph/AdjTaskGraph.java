@@ -61,7 +61,11 @@ public class AdjTaskGraph {
         }
     }
 
-
+    /**
+     * 得到所有后序顶点
+     * @param vertex
+     * @return
+     */
     public List<JobVertex> getChildren(int vertex) {
         if (!rangeCheck(vertex)) {
             return null;
@@ -70,6 +74,11 @@ public class AdjTaskGraph {
         return this.adj[vertex].getToList();
     }
 
+    /**
+     * 得到所有前序顶点
+     * @param vertex
+     * @return
+     */
     public List<JobVertex> getParents(int vertex) {
         if (!rangeCheck(vertex)) {
             return null;
@@ -78,6 +87,11 @@ public class AdjTaskGraph {
         return this.reversedAdj[vertex].getToList();
     }
 
+    /**
+     * 修改顶点状态
+     * @param vertex
+     * @param status
+     */
     public void changeStatus(int vertex, JobStatus status) {
         if (!rangeCheck(vertex)) {
             return;
@@ -87,6 +101,10 @@ public class AdjTaskGraph {
         this.reversedAdj[vertex].setStatus(status);
     }
 
+    /**
+     * 得到所有根顶点, 即没有前序顶点的顶点
+     * @return
+     */
     public List<JobVertex> getRoots() {
         List<JobVertex> result = new ArrayList<>();
         for (JobVertex job : this.reversedAdj) {
@@ -98,6 +116,10 @@ public class AdjTaskGraph {
         return result;
     }
 
+    /**
+     * 得到所有终顶点, 即没有后续顶点的顶点
+     * @return
+     */
     public List<JobVertex> getLasts() {
         List<JobVertex> result = new ArrayList<>(2);
 
@@ -110,11 +132,21 @@ public class AdjTaskGraph {
         return result;
     }
 
+    /**
+     * 设置顶点结果
+     * @param vertex
+     * @param result
+     */
     public void setResult(int vertex, String result) {
         doSetResult(vertex, result, this.adj);
         doSetResult(vertex, result, this.reversedAdj);
     }
 
+    /**
+     * 根据id得到图中的对应顶点
+     * @param vertex
+     * @return
+     */
     public JobVertex getJobVertex(int vertex) {
         if (!rangeCheck(vertex)) {
             return null;
@@ -137,6 +169,10 @@ public class AdjTaskGraph {
         }
     }
 
+    /**
+     * 判断图是否有环
+     * @return
+     */
     public boolean hasCircle() {
         List<JobVertex> roots = getRoots();
 
