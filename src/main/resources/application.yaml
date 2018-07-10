@@ -1,3 +1,13 @@
 spring:
   application:
     name: jobdep
+
+  datasource:
+    driver-class-name: com.mysql.jdbc.Driver
+    url: jdbc:mysql://127.0.0.1:3306/jobdep?autoReconnect=true&useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&rewriteBatchedStatements=true
+    username: root
+    password:
+
+logging:
+  config: classpath:logback-dev.xml
+
