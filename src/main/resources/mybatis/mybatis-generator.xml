@@ -23,7 +23,7 @@
             <property name="forceBigDecimals" value="false"/>
         </javaTypeResolver>
 
-        <javaModelGenerator targetPackage="cn.fh.jobdep.task.store.dao.model" targetProject=".">
+        <javaModelGenerator targetPackage="cn.fh.jobdep.task.store.mysql.dao.model" targetProject=".">
             <!-- This property is used to select whether MyBatis Generator will generate different Java packages for
       the objects based on the catalog and schema of the introspected table -->
             <property name="enableSubPackages" value="false"/>
@@ -37,7 +37,7 @@
             <property name="enableSubPackages" value="false"/>
         </sqlMapGenerator>
 
-        <javaClientGenerator targetPackage="cn.fh.jobdep.task.store.dao" targetProject="." type="XMLMAPPER">
+        <javaClientGenerator targetPackage="cn.fh.jobdep.task.store.mysql.dao" targetProject="." type="XMLMAPPER">
             <!-- This property is used to select whether MyBatis Generator will generate different Java packages for
       the objects based on the catalog and schema of the introspected table -->
             <property name="enableSubPackages" value="false"/>

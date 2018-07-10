@@ -213,6 +213,10 @@ public class AdjTaskGraph {
         return wrapper.toGraph();
     }
 
+    public JobStatus getTaskStatus() {
+        return this.status;
+    }
+
     private void doSetResult(int vertex, String result, JobVertex[] adj) {
         for (JobVertex job : adj) {
             if (job.getIndex() == vertex) {

@@ -1,4 +1,4 @@
-package cn.fh.jobdep.task.store.dao.model;
+package cn.fh.jobdep.task.store.mysql.dao.model;
 
 import java.util.Date;
 

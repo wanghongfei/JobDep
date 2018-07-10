@@ -1,6 +1,6 @@
-package cn.fh.jobdep.task.store.dao;
+package cn.fh.jobdep.task.store.mysql.dao;
 
-import cn.fh.jobdep.task.store.dao.model.TaskModel;
+import cn.fh.jobdep.task.store.mysql.dao.model.TaskModel;
 
 public interface TaskModelMapper {
     /**

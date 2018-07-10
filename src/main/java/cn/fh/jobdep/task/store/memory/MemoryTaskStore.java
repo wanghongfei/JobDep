@@ -1,6 +1,8 @@
-package cn.fh.jobdep.task.store;
+package cn.fh.jobdep.task.store.memory;
 
 import cn.fh.jobdep.graph.AdjTaskGraph;
+import cn.fh.jobdep.task.store.TaskStore;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
@@ -8,6 +10,7 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicLong;
 
 @Service
+@ConditionalOnProperty(prefix = "jobdep", name = "task-store", havingValue = "memory", matchIfMissing = true)
 public class MemoryTaskStore implements TaskStore<AdjTaskGraph> {
     private static Map<Long, AdjTaskGraph> taskMap = new HashMap<>();
 
