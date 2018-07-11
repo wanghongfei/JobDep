@@ -11,6 +11,3 @@ spring:
 logging:
   config: classpath:logback-dev.xml
 
-jobdep:
-  task-store: mysql
-  # task-store: memory

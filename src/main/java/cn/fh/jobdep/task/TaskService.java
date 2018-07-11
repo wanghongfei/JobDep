@@ -14,6 +14,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Transactional;
 import org.yaml.snakeyaml.Yaml;
 
 import java.util.ArrayList;
@@ -68,6 +70,7 @@ public class TaskService {
      * @param g
      * @return
      */
+    @Transactional
     public Long saveGraph(AdjTaskGraph g) {
         return taskStore.saveTask(g);
     }
@@ -82,6 +85,7 @@ public class TaskService {
      * @param lastJobResult
      * @return 有新任务触发返回true
      */
+    @Transactional(isolation = Isolation.SERIALIZABLE)
     public boolean triggerNextJobs(Long taskId, Integer jobId, boolean success, String lastJobResult) {
         // 取出任务图
         AdjTaskGraph g = taskStore.getTaskGraph(taskId);
@@ -93,7 +97,7 @@ public class TaskService {
             // 任务失败
             g.changeJobStatus(jobId, JobStatus.FAILED);
             log.info("trigger failed nofity for job {}", jobId);
-            triggerNotify(jobId, g);
+            triggerNotify(taskId, jobId, g);
             return false;
         }
 
@@ -108,7 +112,7 @@ public class TaskService {
             // 没有后序任务了
             // 触发成功通知
             log.info("trigger success nofity for job {}", jobId);
-            triggerNotify(jobId, g);
+            triggerNotify(taskId, jobId, g);
             return false;
         }
 
@@ -124,36 +128,54 @@ public class TaskService {
             }
 
             // 可以触发
-            triggerJob(job, preJobList);
+            triggerJob(taskId, g, job, preJobList);
         }
 
+        taskStore.updateTask(taskId, g, lastJobResult);
         return true;
     }
 
-    private void triggerNotify(Integer vertex, AdjTaskGraph g) {
-        JobVertex job = g.getJobVertex(vertex);
-        if (job.getStatus() == JobStatus.FINISHED) {
-            // 成功
-            NotifyRequest req = new NotifyRequest(0, job.getResult());
-            httpService.sendRequest(job.getNotifyUrl(), JSON.toJSONString(req));
-            g.changeTaskStatus(JobStatus.FINISHED);
 
-        } else {
-            NotifyRequest req = new NotifyRequest(-1, "");
-            httpService.sendRequest(job.getNotifyUrl(), JSON.toJSONString(req));
+    private void triggerNotify(Long taskId, Integer vertex, AdjTaskGraph g) {
+        JobVertex job = g.getJobVertex(vertex);
+        try {
+            if (job.getStatus() == JobStatus.FINISHED) {
+                // 成功
+                NotifyRequest req = new NotifyRequest(0, job.getResult());
+                httpService.sendRequest(job.getNotifyUrl(), JSON.toJSONString(req));
+                g.changeTaskStatus(JobStatus.FINISHED);
+
+                taskStore.updateTask(taskId, g, "success");
+
+            } else {
+                NotifyRequest req = new NotifyRequest(-1, "");
+                httpService.sendRequest(job.getNotifyUrl(), JSON.toJSONString(req));
+                g.changeTaskStatus(JobStatus.FAILED);
+
+                taskStore.updateTask(taskId, g, "failed");
+            }
+
+        } catch (Exception e) {
             g.changeTaskStatus(JobStatus.FAILED);
+            taskStore.updateTask(taskId, g, "failed to trigger notification, reason = " + e.getMessage());
         }
     }
 
-    private void triggerJob(JobVertex job, List<JobVertex> preJobList) {
-        // 将前序job结果组合起来
-        List<TriggerData> triggerDataList = preJobList.stream()
-                .map( j -> new TriggerData(j.getName(), j.getResult()))
-                .collect(Collectors.toList());
+    private void triggerJob(Long taskId, AdjTaskGraph g, JobVertex job, List<JobVertex> preJobList) {
+        try {
+            // 将前序job结果组合起来
+            List<TriggerData> triggerDataList = preJobList.stream()
+                    .map( j -> new TriggerData(j.getName(), j.getResult()))
+                    .collect(Collectors.toList());
 
-        // 触发任务
-        String resp = httpService.sendRequest(job.getNotifyUrl(), JSON.toJSONString(triggerDataList));
-        log.info("trigger job {}, response = {}", job.getName(), resp);
+            // 触发任务
+            String resp = httpService.sendRequest(job.getNotifyUrl(), JSON.toJSONString(triggerDataList));
+            log.info("trigger job {}, response = {}", job.getName(), resp);
+
+        } catch (Exception e) {
+            g.changeTaskStatus(JobStatus.FAILED);
+            taskStore.updateTask(taskId, g, "failed to trigger next job " + job.getName() + ", reason = " + e.getMessage());
+        }
     }
 
 

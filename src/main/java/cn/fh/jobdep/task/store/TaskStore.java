@@ -14,5 +14,5 @@ public interface TaskStore<T> {
      */
     Long saveTask(T graph);
 
-    boolean updateTask(Long taskId, T graph);
+    boolean updateTask(Long taskId, T graph, String msg);
 }

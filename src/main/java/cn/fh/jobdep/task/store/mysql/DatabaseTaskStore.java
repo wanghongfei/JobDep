@@ -6,19 +6,14 @@ import cn.fh.jobdep.task.store.TaskStore;
 import cn.fh.jobdep.task.store.mysql.dao.TaskModelMapper;
 import cn.fh.jobdep.task.store.mysql.dao.model.TaskModel;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Isolation;
-import org.springframework.transaction.annotation.Transactional;
 
 @Service
-@ConditionalOnProperty(prefix = "jobdep", name = "task-store", havingValue = "mysql", matchIfMissing = false)
 public class DatabaseTaskStore implements TaskStore<AdjTaskGraph> {
     @Autowired
     private TaskModelMapper taskMapper;
 
     @Override
-    @Transactional(isolation = Isolation.SERIALIZABLE)
     public AdjTaskGraph getTaskGraph(Long taskId) {
         TaskModel model = taskMapper.selectByPrimaryKey(taskId);
 
@@ -26,7 +21,6 @@ public class DatabaseTaskStore implements TaskStore<AdjTaskGraph> {
     }
 
     @Override
-    @Transactional(isolation = Isolation.SERIALIZABLE)
     public Long saveTask(AdjTaskGraph graph) {
         TaskModel record = new TaskModel();
         record.setGraph(graph.toJson());
@@ -38,12 +32,12 @@ public class DatabaseTaskStore implements TaskStore<AdjTaskGraph> {
     }
 
     @Override
-    @Transactional(isolation = Isolation.SERIALIZABLE)
-    public boolean updateTask(Long taskId, AdjTaskGraph graph) {
+    public boolean updateTask(Long taskId, AdjTaskGraph graph, String msg) {
         TaskModel record = new TaskModel();
         record.setId(taskId);
         record.setGraph(graph.toJson());
         record.setStatus(graph.getTaskStatus().code());
+        record.setMessage(msg);
 
         return taskMapper.updateByPrimaryKeySelective(record) > 0;
     }
