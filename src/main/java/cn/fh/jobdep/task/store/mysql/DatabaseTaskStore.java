@@ -1,5 +1,6 @@
 package cn.fh.jobdep.task.store.mysql;
 
+import cn.fh.jobdep.error.JobException;
 import cn.fh.jobdep.graph.AdjTaskGraph;
 import cn.fh.jobdep.graph.JobStatus;
 import cn.fh.jobdep.task.store.TaskStore;
@@ -16,6 +17,9 @@ public class DatabaseTaskStore implements TaskStore<AdjTaskGraph> {
     @Override
     public AdjTaskGraph getTaskGraph(Long taskId) {
         TaskModel model = taskMapper.selectByPrimaryKey(taskId);
+        if (null == model) {
+            throw new JobException("task " + taskId + " not found");
+        }
 
         return AdjTaskGraph.fromJson(model.getGraph());
     }

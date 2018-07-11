@@ -25,8 +25,8 @@ public class TaskController extends BaseController {
     }
 
     @PostMapping(value = "/submit")
-    public DepResponse<SubmitInfo> startTask(@RequestBody SubmitRequest req) {
-        SubmitInfo info = taskService.startTask(req.getYaml());
+    public DepResponse<SubmitInfo> startTask(@RequestBody String yaml) {
+        SubmitInfo info = taskService.startTask(yaml);
 
         return new DepResponse<>(info);
     }

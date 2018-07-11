@@ -39,6 +39,7 @@ public class TaskService {
      *
      * @param yaml
      */
+    @Transactional(isolation = Isolation.SERIALIZABLE)
     public SubmitInfo startTask(String yaml) {
         AdjTaskGraph graph = buildTaskGraph(yaml);
         Long gid = saveGraph(graph);
@@ -70,7 +71,6 @@ public class TaskService {
      * @param g
      * @return
      */
-    @Transactional
     public Long saveGraph(AdjTaskGraph g) {
         return taskStore.saveTask(g);
     }
