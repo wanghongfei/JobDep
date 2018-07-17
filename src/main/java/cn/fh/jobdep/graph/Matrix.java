@@ -10,7 +10,7 @@ public class Matrix {
     /**
      * 永远指向y维度的空位置
      */
-    private int emptySlot = 0;
+    private int[] emptySlot;
 
     public Matrix(int xCap, int yCap) {
         if (xCap < 1) {
@@ -22,6 +22,7 @@ public class Matrix {
         }
 
         mx = new Integer[xCap][yCap];
+        emptySlot = new int[xCap];
     }
 
     /**
@@ -35,7 +36,21 @@ public class Matrix {
         }
 
         ensureCap(xPos);
-        mx[xPos][emptySlot++] = elem;
+        mx[xPos][emptySlot[xPos]++] = elem;
+    }
+
+    /**
+     * 检查某行是否为空
+     *
+     * @param xPos
+     * @return
+     */
+    public boolean isRowEmpty(int xPos) {
+        if (rangeCheck(xPos)) {
+            return true;
+        }
+
+        return emptySlot[xPos] == 0;
     }
 
     /**
@@ -66,7 +81,7 @@ public class Matrix {
         }
 
         // 行容量不足
-        if (emptySlot >= arr.length) {
+        if (emptySlot[xPos] >= arr.length) {
             // 1.5x
             arr = new Integer[arr.length + arr.length / 2];
             System.arraycopy(mx[xPos], 0, arr, 0, arr.length);
