@@ -1,10 +1,14 @@
 package cn.fh.jobdep.graph;
 
+import lombok.ToString;
+
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 
-public class Matrix {
+@ToString
+public class Matrix implements Iterable<Integer[]> {
     private Integer[][] mx;
 
     /**
@@ -30,8 +34,8 @@ public class Matrix {
      * @param elem
      * @param xPos
      */
-    public void addY(int elem, int xPos) {
-        if (rangeCheck(xPos)) {
+    public void addY(int xPos, int elem) {
+        if (!rangeCheck(xPos)) {
             return;
         }
 
@@ -46,7 +50,7 @@ public class Matrix {
      * @return
      */
     public boolean isRowEmpty(int xPos) {
-        if (rangeCheck(xPos)) {
+        if (!rangeCheck(xPos)) {
             return true;
         }
 
@@ -60,11 +64,16 @@ public class Matrix {
      * @return
      */
     public List<Integer> getRows(int xPos) {
-        if (rangeCheck(xPos)) {
+        if (!rangeCheck(xPos)) {
             return Collections.emptyList();
         }
 
         return Arrays.asList(mx[xPos]);
+    }
+
+    @Override
+    public Iterator<Integer[]> iterator() {
+        return new MatrixIterator(this);
     }
 
     /**
@@ -92,5 +101,24 @@ public class Matrix {
 
     private boolean rangeCheck(int xPos) {
         return xPos + 1 <= mx.length;
+    }
+
+    private static class MatrixIterator implements Iterator<Integer[]> {
+        private Matrix matrix;
+        private int current = 0;
+
+        public MatrixIterator(Matrix matrix) {
+            this.matrix = matrix;
+        }
+
+        @Override
+        public boolean hasNext() {
+            return this.current < matrix.mx.length;
+        }
+
+        @Override
+        public Integer[] next() {
+            return matrix.mx[current++];
+        }
     }
 }
