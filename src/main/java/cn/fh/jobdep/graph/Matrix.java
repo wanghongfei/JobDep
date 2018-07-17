@@ -2,31 +2,21 @@ package cn.fh.jobdep.graph;
 
 import lombok.ToString;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 @ToString
-public class Matrix implements Iterable<Integer[]> {
-    private Integer[][] mx;
+public class Matrix implements Iterable<Matrix.MatrixRow> {
+    private MatrixRow[] mx;
 
-    /**
-     * 永远指向y维度的空位置
-     */
-    private int[] emptySlot;
-
-    public Matrix(int xCap, int yCap) {
+    public Matrix(int xCap) {
         if (xCap < 1) {
             xCap = 10;
         }
 
-        if (yCap < 1) {
-            yCap = 10;
+        mx = new MatrixRow[xCap];
+        for (int ix = 0; ix < xCap; ++ix) {
+            mx[ix] = new MatrixRow();
         }
-
-        mx = new Integer[xCap][yCap];
-        emptySlot = new int[xCap];
     }
 
     /**
@@ -34,28 +24,14 @@ public class Matrix implements Iterable<Integer[]> {
      * @param elem
      * @param xPos
      */
-    public void addY(int xPos, int elem) {
+    public void addY(int xPos, Integer elem) {
         if (!rangeCheck(xPos)) {
             return;
         }
 
-        ensureCap(xPos);
-        mx[xPos][emptySlot[xPos]++] = elem;
+        mx[xPos].add(elem);
     }
 
-    /**
-     * 检查某行是否为空
-     *
-     * @param xPos
-     * @return
-     */
-    public boolean isRowEmpty(int xPos) {
-        if (!rangeCheck(xPos)) {
-            return true;
-        }
-
-        return emptySlot[xPos] == 0;
-    }
 
     /**
      * 获取整行元素
@@ -68,42 +44,20 @@ public class Matrix implements Iterable<Integer[]> {
             return Collections.emptyList();
         }
 
-        return Arrays.asList(mx[xPos]);
+        return mx[xPos];
     }
 
     @Override
-    public Iterator<Integer[]> iterator() {
+    public Iterator<MatrixRow> iterator() {
         return new MatrixIterator(this);
     }
 
-    /**
-     * 确保行容量足够
-     * @param xPos
-     */
-    private void ensureCap(int xPos) {
-        Integer[] arr = mx[xPos];
-
-        // 行不存在,创建
-        if (null == arr) {
-            mx[xPos] = new Integer[5];
-            return;
-        }
-
-        // 行容量不足
-        if (emptySlot[xPos] >= arr.length) {
-            // 1.5x
-            arr = new Integer[arr.length + arr.length / 2];
-            System.arraycopy(mx[xPos], 0, arr, 0, arr.length);
-
-            mx[xPos] = arr;
-        }
-    }
 
     private boolean rangeCheck(int xPos) {
         return xPos + 1 <= mx.length;
     }
 
-    private static class MatrixIterator implements Iterator<Integer[]> {
+    private static class MatrixIterator implements Iterator<MatrixRow> {
         private Matrix matrix;
         private int current = 0;
 
@@ -117,8 +71,12 @@ public class Matrix implements Iterable<Integer[]> {
         }
 
         @Override
-        public Integer[] next() {
+        public MatrixRow next() {
             return matrix.mx[current++];
         }
+    }
+
+    public static class MatrixRow extends LinkedList<Integer> {
+
     }
 }
