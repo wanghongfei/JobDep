@@ -45,10 +45,8 @@ public class TaskService {
         AdjTaskGraph graph = buildTaskGraph(yaml);
         Long gid = saveGraph(graph);
 
-        List<JobVertex> roots = graph.getRoots();
-        for (JobVertex job : roots) {
-            triggerNextJobs(gid, job.getIndex(), true, "");
-        }
+        // List<JobVertex> roots = graph.getRoots();
+        triggerNextJobs(gid, -1, true, "init");
 
         return new SubmitInfo(gid);
     }
@@ -94,21 +92,29 @@ public class TaskService {
             throw new JobException("invalid taskId");
         }
 
-        if (!success) {
-            // 任务失败
-            g.changeJobStatus(jobId, JobStatus.FAILED);
-            log.info("trigger failed nofity for job {}", jobId);
-            triggerNotify(taskId, jobId, g);
-            return false;
+        List<JobVertex> nextJobList;
+        if (jobId != -1) {
+            if (!success) {
+                // 任务失败
+                g.changeJobStatus(jobId, JobStatus.FAILED);
+                log.info("trigger failed nofity for job {}", jobId);
+                triggerNotify(taskId, jobId, g);
+                return false;
+            }
+
+            // 设置此job任务结果
+            g.setResult(jobId, lastJobResult);
+            g.changeJobStatus(jobId, JobStatus.FINISHED);
+            log.info("job {} marked as finished, result = {}", jobId, lastJobResult);
+
+            nextJobList = g.getChildren(jobId);
+
+        } else {
+            nextJobList = g.getRoots();
         }
 
-        // 设置此job任务结果
-        g.setResult(jobId, lastJobResult);
-        g.changeJobStatus(jobId, JobStatus.FINISHED);
-        log.info("job {} marked as finished, result = {}", jobId, lastJobResult);
-
         // 取出后续job
-        List<JobVertex> nextJobList = g.getChildren(jobId);
+        // List<JobVertex> nextJobList = g.getChildren(jobId);
         if (CollectionUtils.isEmpty(nextJobList)) {
             // 没有后序任务了
             // 触发成功通知
@@ -118,6 +124,7 @@ public class TaskService {
         }
 
         // 遍历后续job
+        boolean allSuccess = true;
         for (JobVertex job : nextJobList) {
             // 判断是否所有前序job都完成了
             List<JobVertex> preJobList = g.getParents(job.getIndex());
@@ -129,10 +136,16 @@ public class TaskService {
             }
 
             // 可以触发
-            triggerJob(taskId, g, job, preJobList);
+            boolean ok = triggerJob(taskId, g, job, preJobList);
+            if (!ok) {
+                allSuccess = false;
+            }
         }
 
-        taskStore.updateTask(taskId, g, lastJobResult);
+        if (allSuccess) {
+            taskStore.updateTask(taskId, g, lastJobResult);
+        }
+
         return true;
     }
 
@@ -162,7 +175,7 @@ public class TaskService {
         }
     }
 
-    private void triggerJob(Long taskId, AdjTaskGraph g, JobVertex job, List<JobVertex> preJobList) {
+    private boolean triggerJob(Long taskId, AdjTaskGraph g, JobVertex job, List<JobVertex> preJobList) {
         try {
             // 将前序job结果组合起来
             List<TriggerData> triggerDataList = preJobList.stream()
@@ -171,12 +184,17 @@ public class TaskService {
 
             // 触发任务
             TriggerRequest request = new TriggerRequest(job.getIndex(), triggerDataList);
-            String resp = httpService.sendRequest(job.getNotifyUrl(), JSON.toJSONString(request));
+            String resp = httpService.sendRequest(job.getTriggerUrl(), JSON.toJSONString(request));
+            g.changeJobStatus(job.getIndex(), JobStatus.RUNNING);
             log.info("trigger job {}, response = {}", job.getName(), resp);
+
+            return true;
 
         } catch (Exception e) {
             g.changeTaskStatus(JobStatus.FAILED);
             taskStore.updateTask(taskId, g, "failed to trigger next job " + job.getName() + ", reason = " + e.getMessage());
+
+            return false;
         }
     }
 
