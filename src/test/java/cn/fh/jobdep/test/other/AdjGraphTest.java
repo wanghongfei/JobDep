@@ -86,7 +86,7 @@ public class AdjGraphTest {
                 )
         );
 
-       AdjTaskGraph graph = new AdjTaskGraph(edges);
+        AdjTaskGraph graph = new AdjTaskGraph(edges);
         System.out.println(graph);
 
         System.out.println("the child of 0:" + graph.getChildren(0));

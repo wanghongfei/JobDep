@@ -2,14 +2,14 @@ package cn.fh.jobdep.graph;
 
 import cn.fh.jobdep.error.JobException;
 import com.alibaba.fastjson.JSON;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 import lombok.ToString;
 import org.apache.commons.collections4.CollectionUtils;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * 任务(Task), 由多个有依赖关系的Job组成, 对应一张图
@@ -19,17 +19,22 @@ public class AdjTaskGraph {
     /**
      * 邻接表
      */
-    private JobVertex[] adj;
+    private Matrix adj;
 
     /**
      * 反向adj
      */
-    private JobVertex[] reversedAdj;
+    private Matrix reversedAdj;
 
     /**
      * 顶点数量
      */
     private int vertCount;
+
+    /**
+     * 保存所有顶点
+     */
+    private Map<Integer, JobVertex> vertexMap = new HashMap<>();
 
     /**
      * 整个Task的运行状态
@@ -38,13 +43,6 @@ public class AdjTaskGraph {
 
     private AdjTaskGraph() {
 
-    }
-
-    private AdjTaskGraph(GraphWrapper wrapper) {
-        this.adj = wrapper.adj;
-        this.reversedAdj = wrapper.reversedAdj;
-        this.vertCount = wrapper.vertCount;
-        this.status = wrapper.status;
     }
 
     /**
@@ -67,8 +65,8 @@ public class AdjTaskGraph {
 
         this.vertCount = maxVertex + 1;
 
-        this.adj = new JobVertex[vertCount];
-        this.reversedAdj = new JobVertex[vertCount];
+        this.adj = new Matrix(vertCount);
+        this.reversedAdj = new Matrix(vertCount);
 
         // 遍历edge
         for (JobEdge edge : edges) {
@@ -83,11 +81,9 @@ public class AdjTaskGraph {
      * @return
      */
     public List<JobVertex> getChildren(int vertex) {
-        if (!rangeCheck(vertex)) {
-            return null;
-        }
-
-        return this.adj[vertex].getToList();
+        return adj.getRows(vertex).stream()
+                .map(id -> vertexMap.get(id))
+                .collect(Collectors.toList());
     }
 
     /**
@@ -96,11 +92,9 @@ public class AdjTaskGraph {
      * @return
      */
     public List<JobVertex> getParents(int vertex) {
-        if (!rangeCheck(vertex)) {
-            return null;
-        }
-
-        return this.reversedAdj[vertex].getToList();
+        return reversedAdj.getRows(vertex).stream()
+                .map(id -> vertexMap.get(id))
+                .collect(Collectors.toList());
     }
 
     /**
@@ -109,12 +103,12 @@ public class AdjTaskGraph {
      * @param status
      */
     public void changeJobStatus(int vertex, JobStatus status) {
-        if (!rangeCheck(vertex)) {
+        JobVertex job = vertexMap.get(vertex);
+        if (null == job) {
             return;
         }
 
-        this.adj[vertex].setStatus(status);
-        this.reversedAdj[vertex].setStatus(status);
+        job.setStatus(status);
     }
 
     /**
@@ -122,14 +116,25 @@ public class AdjTaskGraph {
      * @return
      */
     public List<JobVertex> getRoots() {
-        List<JobVertex> result = new ArrayList<>();
-        for (JobVertex job : this.reversedAdj) {
-            if (CollectionUtils.isEmpty(job.getToList())) {
-                result.add(this.adj[job.getIndex()]);
+//        List<JobVertex> result = new ArrayList<>();
+//        for (JobVertex job : this.reversedAdj) {
+//            if (CollectionUtils.isEmpty(job.getToList())) {
+//                result.add(this.adj[job.getIndex()]);
+//            }
+//        }
+//
+//        return result;
+
+        List<Integer> idList = new ArrayList<>();
+        for (Matrix.MatrixRow row : this.reversedAdj) {
+            if (row.isEmpty()) {
+                idList.add(row.getIndex());
             }
         }
 
-        return result;
+        return idList.stream()
+                .map(id -> vertexMap.get(id))
+                .collect(Collectors.toList());
     }
 
     /**
@@ -137,15 +142,23 @@ public class AdjTaskGraph {
      * @return
      */
     public List<JobVertex> getLasts() {
-        List<JobVertex> result = new ArrayList<>(2);
 
-        for (JobVertex job : this.adj) {
-            if (CollectionUtils.isEmpty(job.getToList())) {
-                result.add(job);
+//        for (JobVertex job : this.adj) {
+//            if (CollectionUtils.isEmpty(job.getToList())) {
+//                result.add(job);
+//            }
+//        }
+
+        List<Integer> idList = new ArrayList<>();
+        for (Matrix.MatrixRow row : this.adj) {
+            if (row.isEmpty()) {
+                idList.add(row.getIndex());
             }
         }
 
-        return result;
+        return idList.stream()
+                .map(id -> vertexMap.get(id))
+                .collect(Collectors.toList());
     }
 
     /**
@@ -154,8 +167,15 @@ public class AdjTaskGraph {
      * @param result
      */
     public void setResult(int vertex, String result) {
-        doSetResult(vertex, result, this.adj);
-        doSetResult(vertex, result, this.reversedAdj);
+//        doSetResult(vertex, result, this.adj);
+//        doSetResult(vertex, result, this.reversedAdj);
+
+        JobVertex job = vertexMap.get(vertex);
+        if (null == job) {
+            return;
+        }
+
+        job.setResult(result);
     }
 
     /**
@@ -164,11 +184,12 @@ public class AdjTaskGraph {
      * @return
      */
     public JobVertex getJobVertex(int vertex) {
-        if (!rangeCheck(vertex)) {
-            return null;
-        }
-
-        return this.adj[vertex];
+//        if (!rangeCheck(vertex)) {
+//            return null;
+//        }
+//
+//        return this.adj[vertex];
+        return vertexMap.get(vertex);
     }
 
     /**
@@ -199,8 +220,7 @@ public class AdjTaskGraph {
      * @return
      */
     public String toJson() {
-        GraphWrapper wrapper = new GraphWrapper(this.adj, this.reversedAdj, this.vertCount, this.status);
-        return JSON.toJSONString(wrapper);
+        return JSON.toJSONString(this);
     }
 
     /**
@@ -209,26 +229,11 @@ public class AdjTaskGraph {
      * @return
      */
     public static AdjTaskGraph fromJson(String json) {
-        GraphWrapper wrapper = JSON.parseObject(json, GraphWrapper.class);
-        return wrapper.toGraph();
+        return JSON.parseObject(json, AdjTaskGraph.class);
     }
 
     public JobStatus getTaskStatus() {
         return this.status;
-    }
-
-    private void doSetResult(int vertex, String result, JobVertex[] adj) {
-        for (JobVertex job : adj) {
-            if (job.getIndex() == vertex) {
-                job.setResult(result);
-            }
-
-            for (JobVertex next : job.getToList()) {
-                if (next.getIndex() == vertex) {
-                    next.setResult(result);
-                }
-            }
-        }
     }
 
     /**
@@ -242,7 +247,11 @@ public class AdjTaskGraph {
         visited[currentIndex] = true;
 
         // 取出后序顶点
-        List<JobVertex> nextList = this.adj[currentIndex].getToList();
+        List<JobVertex> nextList = this.adj.getRows(currentIndex).stream()
+                .map(id -> vertexMap.get(id))
+                .collect(Collectors.toList());
+
+        // List<JobVertex> nextList = this.adj[currentIndex].getToList();
         if (CollectionUtils.isEmpty(nextList)) {
             visited[currentIndex] = false;
             return false;
@@ -265,42 +274,15 @@ public class AdjTaskGraph {
         return false;
     }
 
-    private void addEdge(JobEdge edge, JobVertex[] adj) {
+    private void addEdge(JobEdge edge, Matrix adj) {
         JobVertex from = edge.getFrom();
         JobVertex to = edge.getTo();
 
-        int slotIndex = from.getIndex();
-        if (null == adj[slotIndex]) {
-            adj[slotIndex] = from.clone();
-        }
-        adj[slotIndex].addToVertex(to);
+        // 保存顶点
+        vertexMap.putIfAbsent(from.getIndex(), from);
+        vertexMap.putIfAbsent(to.getIndex(), to);
 
-        slotIndex = to.getIndex();
-        if (null == adj[slotIndex]) {
-            adj[slotIndex] = to.clone();
-        }
-
-    }
-
-    private boolean rangeCheck(int vertex) {
-        return vertex <= this.adj.length + 1;
-    }
-
-
-    @Data
-    @AllArgsConstructor
-    @NoArgsConstructor
-    public static class GraphWrapper {
-        private JobVertex[] adj;
-
-        private JobVertex[] reversedAdj;
-
-        private int vertCount;
-
-        private volatile JobStatus status;
-
-        public AdjTaskGraph toGraph() {
-            return new AdjTaskGraph(this);
-        }
+        // 建立边关系
+        adj.addY(from.getIndex(), to.getIndex());
     }
 }
