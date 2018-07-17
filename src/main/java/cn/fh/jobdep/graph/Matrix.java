@@ -1,5 +1,6 @@
 package cn.fh.jobdep.graph;
 
+import lombok.Getter;
 import lombok.ToString;
 
 import java.util.*;
@@ -15,7 +16,7 @@ public class Matrix implements Iterable<Matrix.MatrixRow> {
 
         mx = new MatrixRow[xCap];
         for (int ix = 0; ix < xCap; ++ix) {
-            mx[ix] = new MatrixRow();
+            mx[ix] = new MatrixRow(ix);
         }
     }
 
@@ -76,7 +77,12 @@ public class Matrix implements Iterable<Matrix.MatrixRow> {
         }
     }
 
+    @Getter
     public static class MatrixRow extends LinkedList<Integer> {
+        private int index;
 
+        public MatrixRow(int index) {
+            this.index = index;
+        }
     }
 }
