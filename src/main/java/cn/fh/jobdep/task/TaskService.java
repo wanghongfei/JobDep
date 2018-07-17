@@ -9,6 +9,7 @@ import cn.fh.jobdep.graph.JobVertex;
 import cn.fh.jobdep.task.store.TaskStore;
 import cn.fh.jobdep.task.vo.NotifyRequest;
 import cn.fh.jobdep.task.vo.TriggerData;
+import cn.fh.jobdep.task.vo.TriggerRequest;
 import com.alibaba.fastjson.JSON;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections4.CollectionUtils;
@@ -169,7 +170,8 @@ public class TaskService {
                     .collect(Collectors.toList());
 
             // 触发任务
-            String resp = httpService.sendRequest(job.getNotifyUrl(), JSON.toJSONString(triggerDataList));
+            TriggerRequest request = new TriggerRequest(job.getIndex(), triggerDataList);
+            String resp = httpService.sendRequest(job.getNotifyUrl(), JSON.toJSONString(request));
             log.info("trigger job {}, response = {}", job.getName(), resp);
 
         } catch (Exception e) {
