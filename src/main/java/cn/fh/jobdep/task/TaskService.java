@@ -206,12 +206,18 @@ public class TaskService {
             String jobName = entries.getKey();
             Map<String, Object> jobInfoMap = (Map<String, Object>) entries.getValue();
 
+            // 验证通知url是否非空
+            String triggerUrl = (String) jobInfoMap.get("triggerUrl");
+            if (null == triggerUrl || triggerUrl.isEmpty()) {
+                throw new JobException("invalid job yaml for " + jobName + ", trigger url cannot be empty");
+            }
+
             // 构造顶点对象
             JobVertex jobVertex = new JobVertex();
             jobVertex.setIndex(jobIdMap.get(jobName));
             jobVertex.setName(jobName);
             jobVertex.setNotifyUrl((String) jobInfoMap.get("notifyUrl"));
-            jobVertex.setTriggerUrl((String) jobInfoMap.get("triggerUrl"));
+            jobVertex.setTriggerUrl(triggerUrl);
             jobMap.put(jobName, jobVertex);
 
             // 维护边父子关系
@@ -244,13 +250,23 @@ public class TaskService {
     }
 
     private void validateGraph(AdjTaskGraph g) {
+        // 是否有环
         if (g.hasCircle()) {
             throw new JobException("circle in graph");
         }
 
-        if (g.getLasts().size() != 1) {
+        // 只否只有一个最终节点
+        List<JobVertex> lastList = g.getLasts();
+        if (lastList.size() != 1) {
             throw new JobException("graph does not end with single vertex");
         }
+
+        // 终节点是否有通知url
+        String addr = lastList.get(0).getNotifyUrl();
+        if (null == addr || addr.isEmpty()) {
+            throw new JobException("last job lacks notify url");
+        }
+
     }
 
     private Map<String, Integer> allocateJobId(Set<String> nameSet) {

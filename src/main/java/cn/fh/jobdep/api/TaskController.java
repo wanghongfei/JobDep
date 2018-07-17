@@ -3,7 +3,6 @@ package cn.fh.jobdep.api;
 import cn.fh.jobdep.api.vo.DepResponse;
 import cn.fh.jobdep.api.vo.FinishRequest;
 import cn.fh.jobdep.api.vo.SubmitInfo;
-import cn.fh.jobdep.api.vo.SubmitRequest;
 import cn.fh.jobdep.task.TaskService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -28,6 +27,6 @@ public class TaskController extends BaseController {
     public DepResponse<SubmitInfo> startTask(@RequestBody String yaml) {
         SubmitInfo info = taskService.startTask(yaml);
 
-        return new DepResponse<>(info);
+        return buildData(info);
     }
 }

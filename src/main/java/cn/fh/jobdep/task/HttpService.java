@@ -2,6 +2,7 @@ package cn.fh.jobdep.task;
 
 import cn.fh.jobdep.error.JobException;
 import org.apache.http.HttpEntity;
+import org.apache.http.HttpStatus;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.StringEntity;
@@ -25,6 +26,11 @@ public class HttpService {
             post.setEntity(new StringEntity(body, "UTF-8"));
 
             try (CloseableHttpResponse response = httpClient.execute(post)) {
+                int code = response.getStatusLine().getStatusCode();
+                if (HttpStatus.SC_OK != code) {
+                    throw new JobException("http response returned none 200 code " + code);
+                }
+
                 HttpEntity entity = response.getEntity();
                 return EntityUtils.toString(entity, "UTF-8");
 
