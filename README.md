@@ -79,3 +79,111 @@ job6:
 - 整个Task最终都要收敛于一个Job, 即必须有且只有一个最终Job, 同时此job必须有`notifyUrl`属性
 
 如果不符合要求，提交任务时会返回错误信息。
+
+
+
+## 接口
+
+### 提交Task
+
+```
+POST /task/submit
+```
+
+请求body为完整描述Task的yaml字符串。
+
+响应:
+
+```json
+{
+    "code": 0,
+    "msg": "succ",
+    "data": {
+        "taskId": 2
+    }
+}
+```
+
+
+
+### 任务通知接收
+
+```
+POST /task/finish
+```
+
+请求body:
+
+```json
+{
+	"jobId": 0,
+	"taskId": 2,
+	"success": true,
+	"result": "job result"
+}
+```
+
+触发Job时，JobDep会把jobId在请求参数中传递给任务执行者, 上面的jobId值与此相同。
+
+
+
+### Task状态查询
+
+```
+GET /task/{taskId}
+```
+
+响应:
+
+```json
+{
+    "code": 0,
+    "msg": "succ",
+    "data": [
+        {
+            "index": 0,
+            "name": "job0",
+            "triggerUrl": "http://job0.com/trigger",
+            "status": "RUNNING"
+        },
+        {
+            "index": 1,
+            "name": "job1",
+            "triggerUrl": "http://job1.com/trigger",
+            "status": "NEW"
+        },
+        {
+            "index": 2,
+            "name": "job2",
+            "triggerUrl": "http://job2.com/trigger",
+            "status": "NEW"
+        },
+        {
+            "index": 3,
+            "name": "job3",
+            "triggerUrl": "http://job3.com/trigger",
+            "status": "NEW"
+        },
+        {
+            "index": 4,
+            "name": "job4",
+            "triggerUrl": "http://job4.com/trigger",
+            "status": "NEW"
+        },
+        {
+            "index": 5,
+            "name": "job5",
+            "triggerUrl": "http://job5.com/trigger",
+            "status": "NEW"
+        },
+        {
+            "index": 6,
+            "name": "job6",
+            "triggerUrl": "trigger",
+            "notifyUrl": "http://job6.com/notify",
+            "status": "NEW"
+        }
+    ]
+}
+```
+
