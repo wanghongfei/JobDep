@@ -3,6 +3,7 @@ package cn.fh.jobdep.test.other;
 import cn.fh.jobdep.graph.AdjTaskGraph;
 import cn.fh.jobdep.graph.JobEdge;
 import cn.fh.jobdep.graph.JobVertex;
+import cn.fh.jobdep.graph.StringFormatter;
 import org.junit.Test;
 import org.yaml.snakeyaml.Yaml;
 
@@ -97,7 +98,8 @@ public class AdjGraphTest {
 
         System.out.println("the roots:" + graph.getRoots());
         System.out.println("the end:" + graph.getLasts());
-        System.out.println(graph.toString(true));
+        // System.out.println(graph.toString(true));
+        System.out.println(graph.format(new StringFormatter()));
         System.out.println(graph.hasCircle());
 
     }

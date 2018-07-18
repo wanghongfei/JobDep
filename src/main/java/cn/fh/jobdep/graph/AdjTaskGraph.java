@@ -22,12 +22,12 @@ public class AdjTaskGraph {
     /**
      * 邻接表
      */
-    private Matrix adj;
+    Matrix adj;
 
     /**
      * 反向adj
      */
-    private Matrix reversedAdj;
+    Matrix reversedAdj;
 
     /**
      * 顶点数量
@@ -37,12 +37,12 @@ public class AdjTaskGraph {
     /**
      * 保存所有顶点
      */
-    private Map<Integer, JobVertex> vertexMap = new HashMap<>();
+    Map<Integer, JobVertex> vertexMap = new HashMap<>();
 
     /**
      * 整个Task的运行状态
      */
-    private volatile JobStatus status = JobStatus.NEW;
+    volatile JobStatus status = JobStatus.NEW;
 
     private AdjTaskGraph() {
 
@@ -254,37 +254,16 @@ public class AdjTaskGraph {
     }
 
     /**
-     * 打印Task图
-     * @param optimized 传递true时只拿打印简洁的边关系, false则打印整个对象
+     * 使用传入的formatter格式化任务图
+     *
+     * @param formatter
+     * @param <T>
      * @return
      */
-    public String toString(boolean optimized) {
-        if (!optimized) {
-            return toString();
-        }
-
-        StringBuilder sb = new StringBuilder(30);
-        for (Matrix.MatrixRow row : this.adj) {
-            JobVertex job = this.vertexMap.get(row.getIndex());
-            if (row.getList().isEmpty()) {
-                sb.append(job.getName()).append("(").append(job.getIndex()).append(")");
-                sb.append("->");
-                sb.append("empty").append('\n');
-                continue;
-            }
-
-            for (Integer id : row) {
-                JobVertex toJob = this.vertexMap.get(id);
-                sb.append(job.getName()).append("(").append(job.getIndex()).append(")");
-                sb.append("->");
-                sb.append(toJob.getName()).append("(").append(toJob.getIndex()).append(")");
-                sb.append(",");
-            }
-            sb.append("\n");
-        }
-
-        return sb.toString();
+    public <T> T format(GraphFormatter<T> formatter) {
+        return formatter.format(this);
     }
+
 
     /**
      * 深度优先遍历
