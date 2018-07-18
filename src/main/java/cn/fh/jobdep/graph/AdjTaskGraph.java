@@ -2,6 +2,9 @@ package cn.fh.jobdep.graph;
 
 import cn.fh.jobdep.error.JobException;
 import com.alibaba.fastjson.JSON;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.ToString;
 import org.apache.commons.collections4.CollectionUtils;
 
@@ -44,6 +47,16 @@ public class AdjTaskGraph {
     private AdjTaskGraph() {
 
     }
+
+    private AdjTaskGraph(GraphWrapper wrapper) {
+        this.adj = wrapper.adj;
+        this.reversedAdj = wrapper.reversedAdj;
+        this.vertCount = wrapper.vertCount;
+        this.vertexMap = wrapper.vertexMap;
+        this.status = wrapper.status;
+    }
+
+
 
     /**
      * 通过边构造一张图
@@ -127,7 +140,7 @@ public class AdjTaskGraph {
 
         List<Integer> idList = new ArrayList<>();
         for (Matrix.MatrixRow row : this.reversedAdj) {
-            if (row.isEmpty()) {
+            if (row.getList().isEmpty()) {
                 idList.add(row.getIndex());
             }
         }
@@ -151,7 +164,7 @@ public class AdjTaskGraph {
 
         List<Integer> idList = new ArrayList<>();
         for (Matrix.MatrixRow row : this.adj) {
-            if (row.isEmpty()) {
+            if (row.getList().isEmpty()) {
                 idList.add(row.getIndex());
             }
         }
@@ -220,7 +233,9 @@ public class AdjTaskGraph {
      * @return
      */
     public String toJson() {
-        return JSON.toJSONString(this);
+        GraphWrapper wrapper =
+                new GraphWrapper(this.adj, this.reversedAdj, this.vertCount, this.vertexMap, this.status);
+        return JSON.toJSONString(wrapper);
     }
 
     /**
@@ -229,7 +244,9 @@ public class AdjTaskGraph {
      * @return
      */
     public static AdjTaskGraph fromJson(String json) {
-        return JSON.parseObject(json, AdjTaskGraph.class);
+        GraphWrapper wrapper = JSON.parseObject(json, GraphWrapper.class);
+        return wrapper.toGraph();
+
     }
 
     public JobStatus getTaskStatus() {
@@ -285,4 +302,24 @@ public class AdjTaskGraph {
         // 建立边关系
         adj.addY(from.getIndex(), to.getIndex());
     }
+
+    @Data
+    @AllArgsConstructor
+    @NoArgsConstructor
+    public static class GraphWrapper {
+        private Matrix adj;
+
+        private Matrix reversedAdj;
+
+        private int vertCount;
+
+        private Map<Integer, JobVertex> vertexMap;
+
+        private volatile JobStatus status;
+
+        public AdjTaskGraph toGraph() {
+            return new AdjTaskGraph(this);
+        }
+    }
+
 }

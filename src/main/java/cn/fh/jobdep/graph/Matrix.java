@@ -1,13 +1,24 @@
 package cn.fh.jobdep.graph;
 
+import lombok.Data;
 import lombok.Getter;
+import lombok.Setter;
 import lombok.ToString;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 
 @ToString
+@Getter
+@Setter
 public class Matrix implements Iterable<Matrix.MatrixRow> {
     private MatrixRow[] mx;
+
+    public Matrix() {
+
+    }
 
     public Matrix(int xCap) {
         if (xCap < 1) {
@@ -30,7 +41,7 @@ public class Matrix implements Iterable<Matrix.MatrixRow> {
             return;
         }
 
-        mx[xPos].add(elem);
+        mx[xPos].getList().add(elem);
     }
 
 
@@ -45,7 +56,7 @@ public class Matrix implements Iterable<Matrix.MatrixRow> {
             return Collections.emptyList();
         }
 
-        return mx[xPos];
+        return mx[xPos].getList();
     }
 
     @Override
@@ -77,12 +88,22 @@ public class Matrix implements Iterable<Matrix.MatrixRow> {
         }
     }
 
-    @Getter
-    public static class MatrixRow extends LinkedList<Integer> {
+    @Data
+    public static class MatrixRow implements Iterable<Integer> {
         private int index;
+
+        private LinkedList<Integer> list = new LinkedList<>();
+
+        public MatrixRow() {
+        }
 
         public MatrixRow(int index) {
             this.index = index;
+        }
+
+        @Override
+        public Iterator<Integer> iterator() {
+            return this.list.iterator();
         }
     }
 }

@@ -25,8 +25,6 @@ public class JobVertex implements Vertex {
 
     private volatile JobStatus status = JobStatus.NEW;
 
-    private List<JobVertex> toList = new ArrayList<>();
-
     public JobVertex(Integer index, String name, String triggerUrl, String notifyUrl) {
         this(index, triggerUrl, notifyUrl);
         this.name = name;
@@ -45,10 +43,6 @@ public class JobVertex implements Vertex {
 
     public JobVertex() {
 
-    }
-
-    protected void addToVertex(JobVertex vertex) {
-        toList.add(vertex);
     }
 
     @Override
