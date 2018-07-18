@@ -91,7 +91,8 @@ public class TaskService {
         if (null == g) {
             throw new JobException("invalid taskId");
         }
-        if (g.getTaskStatus() == JobStatus.FINISHED || g.getTaskStatus() == JobStatus.FAILED) {
+
+        if (g.getTaskStatus().isTerminalStatus()) {
             throw new JobException("cannot modify job at 'finished' or 'failed' status");
         }
 
@@ -179,6 +180,10 @@ public class TaskService {
     }
 
     private boolean triggerJob(Long taskId, AdjTaskGraph g, JobVertex job, List<JobVertex> preJobList) {
+        if (job.getStatus() != JobStatus.NEW) {
+            throw new JobException("cannot trigger twice");
+        }
+
         try {
             // 将前序job结果组合起来
             List<TriggerData> triggerDataList = preJobList.stream()

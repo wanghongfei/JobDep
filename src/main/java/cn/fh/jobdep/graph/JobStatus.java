@@ -15,4 +15,8 @@ public enum JobStatus {
     public int code() {
         return this.code;
     }
+
+    public boolean isTerminalStatus() {
+        return this == FINISHED || this == FAILED;
+    }
 }
