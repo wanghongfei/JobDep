@@ -12,7 +12,7 @@ public class ErrorHandler {
     public DepResponse<Object> handleException(Throwable throwable) {
         DepResponse<Object> body = new DepResponse<>(-1, throwable.getMessage());
 
-        log.warn("response = {}\tELK", body);
+        log.warn("response = {}", body);
         return body;
     }
 }

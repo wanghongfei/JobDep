@@ -8,6 +8,9 @@ spring:
     username: root
     password:
 
+  jackson:
+    default-property-inclusion: non_null
+
 logging:
   config: classpath:logback-dev.xml
 

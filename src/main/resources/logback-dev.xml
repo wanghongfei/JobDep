@@ -27,7 +27,7 @@
     </appender>
 
 
-    <logger name="cn.fh.jobdep" level="debug" additivity="false">
+    <logger name="cn.fh.jobdep" level="info" additivity="false">
         <appender-ref ref="stdout"/>
     </logger>
 

@@ -92,17 +92,28 @@ public class TaskService {
             throw new JobException("invalid taskId");
         }
 
+        // 检查Task状态
         if (g.getTaskStatus().isTerminalStatus()) {
             throw new JobException("cannot modify job at 'finished' or 'failed' status");
         }
 
+
         List<JobVertex> nextJobList;
-        if (jobId != -1) {
+        if (jobId == -1) {
+            // 没有前序任务, 后续job为根任务
+            nextJobList = g.getRoots();
+
+        } else {
+            // 检查jobId
+            JobVertex currentJob = g.getJobVertex(jobId);
+            if (null == currentJob) {
+                throw new JobException("job " + jobId + " not found");
+            }
+
             if (!success) {
                 // 任务失败
-                g.changeJobStatus(jobId, JobStatus.FAILED);
                 log.info("trigger failed nofity for job {}", jobId);
-                triggerNotify(taskId, jobId, g);
+                triggerNotify(taskId, jobId, g, false);
                 return false;
             }
 
@@ -111,19 +122,15 @@ public class TaskService {
             g.changeJobStatus(jobId, JobStatus.FINISHED);
             log.info("job {} marked as finished, result = {}", jobId, lastJobResult);
 
+            // 取出后续job
             nextJobList = g.getChildren(jobId);
-
-        } else {
-            nextJobList = g.getRoots();
         }
 
-        // 取出后续job
-        // List<JobVertex> nextJobList = g.getChildren(jobId);
         if (CollectionUtils.isEmpty(nextJobList)) {
             // 没有后序任务了
             // 触发成功通知
-            log.info("trigger success nofity for job {}", jobId);
-            triggerNotify(taskId, jobId, g);
+            log.info("trigger success notification for job {}", jobId);
+            triggerNotify(taskId, jobId, g, true);
             return false;
         }
 
@@ -154,11 +161,12 @@ public class TaskService {
     }
 
 
-    private void triggerNotify(Long taskId, Integer vertex, AdjTaskGraph g) {
+    private void triggerNotify(Long taskId, Integer vertex, AdjTaskGraph g, boolean success) {
         JobVertex job = g.getJobVertex(vertex);
         try {
-            if (job.getStatus() == JobStatus.FINISHED) {
+            if (success) {
                 // 成功
+                job.setStatus(JobStatus.FINISHED);
                 NotifyRequest req = new NotifyRequest(0, job.getResult());
                 httpService.sendRequest(job.getNotifyUrl(), JSON.toJSONString(req));
                 g.changeTaskStatus(JobStatus.FINISHED);
@@ -166,11 +174,13 @@ public class TaskService {
                 taskStore.updateTask(taskId, g, "success");
 
             } else {
+                job.setStatus(JobStatus.FAILED);
                 NotifyRequest req = new NotifyRequest(-1, "");
                 httpService.sendRequest(job.getNotifyUrl(), JSON.toJSONString(req));
                 g.changeTaskStatus(JobStatus.FAILED);
 
                 taskStore.updateTask(taskId, g, "failed");
+
             }
 
         } catch (Exception e) {
@@ -192,9 +202,12 @@ public class TaskService {
 
             // 触发任务
             TriggerRequest request = new TriggerRequest(job.getIndex(), triggerDataList);
-            String resp = httpService.sendRequest(job.getTriggerUrl(), JSON.toJSONString(request));
+            String body = JSON.toJSONString(request);
+            log.info("trigger {}, request = {}", job.getIndex(), body);
+
+            String resp = httpService.sendRequest(job.getTriggerUrl(), body);
             g.changeJobStatus(job.getIndex(), JobStatus.RUNNING);
-            log.info("trigger job {}, response = {}", job.getName(), resp);
+            log.info("trigger {}, response = {}", job.getName(), resp);
 
             return true;
 

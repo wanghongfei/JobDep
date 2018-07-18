@@ -1,5 +1,8 @@
+# job名, 任意
 job0:
+  # 触发URL
   triggerUrl: "http://job0.com/trigger"
+  # 以下job依赖job0
   next:
     - job2
     - job3
