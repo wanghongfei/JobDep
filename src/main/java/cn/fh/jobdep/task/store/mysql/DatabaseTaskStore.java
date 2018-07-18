@@ -9,6 +9,8 @@ import cn.fh.jobdep.task.store.mysql.dao.model.TaskModel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
+
 @Service
 public class DatabaseTaskStore implements TaskStore<AdjTaskGraph> {
     @Autowired
@@ -42,6 +44,7 @@ public class DatabaseTaskStore implements TaskStore<AdjTaskGraph> {
         record.setGraph(graph.toJson());
         record.setStatus(graph.getTaskStatus().code());
         record.setMessage(msg);
+        record.setUpdateTime(new Date());
 
         return taskMapper.updateByPrimaryKeySelective(record) > 0;
     }

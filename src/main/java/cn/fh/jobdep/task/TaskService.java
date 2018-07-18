@@ -91,6 +91,9 @@ public class TaskService {
         if (null == g) {
             throw new JobException("invalid taskId");
         }
+        if (g.getTaskStatus() == JobStatus.FINISHED || g.getTaskStatus() == JobStatus.FAILED) {
+            throw new JobException("cannot modify job at 'finished' or 'failed' status");
+        }
 
         List<JobVertex> nextJobList;
         if (jobId != -1) {
