@@ -254,6 +254,39 @@ public class AdjTaskGraph {
     }
 
     /**
+     * 打印Task图
+     * @param optimized 传递true时只拿打印简洁的边关系, false则打印整个对象
+     * @return
+     */
+    public String toString(boolean optimized) {
+        if (!optimized) {
+            return toString();
+        }
+
+        StringBuilder sb = new StringBuilder(30);
+        for (Matrix.MatrixRow row : this.adj) {
+            JobVertex job = this.vertexMap.get(row.getIndex());
+            if (row.getList().isEmpty()) {
+                sb.append(job.getName()).append("(").append(job.getIndex()).append(")");
+                sb.append("->");
+                sb.append("empty").append('\n');
+                continue;
+            }
+
+            for (Integer id : row) {
+                JobVertex toJob = this.vertexMap.get(id);
+                sb.append(job.getName()).append("(").append(job.getIndex()).append(")");
+                sb.append("->");
+                sb.append(toJob.getName()).append("(").append(toJob.getIndex()).append(")");
+                sb.append(",");
+            }
+            sb.append("\n");
+        }
+
+        return sb.toString();
+    }
+
+    /**
      * 深度优先遍历
      * @param vert
      * @param visited

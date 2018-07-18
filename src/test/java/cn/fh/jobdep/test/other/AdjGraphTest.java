@@ -51,38 +51,38 @@ public class AdjGraphTest {
     public void testBuildComplexAdj() {
         List<JobEdge> edges = Arrays.asList(
                 new JobEdge(
-                        new JobVertex(0, "-", "-"),
-                        new JobVertex(2, "-", "-")
+                        new JobVertex(0, "job0"),
+                        new JobVertex(2, "job2")
                 ),
                 new JobEdge(
-                        new JobVertex(0, "-", "-"),
-                        new JobVertex(3, "-", "-")
+                        new JobVertex(0, "job0"),
+                        new JobVertex(3, "job3")
                 ),
                 new JobEdge(
-                        new JobVertex(1, "-", "-"),
-                        new JobVertex(3, "-", "-")
+                        new JobVertex(1, "job1"),
+                        new JobVertex(3, "job3")
                 ),
                 new JobEdge(
-                        new JobVertex(2, "-", "-"),
-                        new JobVertex(4, "-", "-")
+                        new JobVertex(2, "job2"),
+                        new JobVertex(4, "job4")
                 ),
                 new JobEdge(
-                        new JobVertex(3, "-", "-"),
-                        new JobVertex(5, "-", "-")
+                        new JobVertex(3, "job3"),
+                        new JobVertex(5, "job5")
                 ),
                 new JobEdge(
-                        new JobVertex(4, "-", "-"),
-                        new JobVertex(6, "-", "-")
+                        new JobVertex(4, "job4"),
+                        new JobVertex(6, "job6")
                 ),
                 new JobEdge(
-                        new JobVertex(5, "-", "-"),
-                        new JobVertex(6, "-", "-")
+                        new JobVertex(5, "job5"),
+                        new JobVertex(6, "job6")
                 ),
 
                 // orphan
                 new JobEdge(
-                        new JobVertex(7, "-", "-"),
-                        new JobVertex(8, "-", "-")
+                        new JobVertex(7, "job7"),
+                        new JobVertex(8, "job8")
                 )
         );
 
@@ -97,6 +97,7 @@ public class AdjGraphTest {
 
         System.out.println("the roots:" + graph.getRoots());
         System.out.println("the end:" + graph.getLasts());
+        System.out.println(graph.toString(true));
         System.out.println(graph.hasCircle());
 
     }
