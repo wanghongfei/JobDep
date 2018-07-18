@@ -46,12 +46,6 @@ public class JobVertex implements Vertex {
     }
 
     @Override
-    public String toString() {
-        // return index + "," + triggerUrl + "," + notifyUrl;
-        return index + "";
-    }
-
-    @Override
     public JobVertex clone() {
         JobVertex vertex = new JobVertex(index, name, triggerUrl, notifyUrl);
 

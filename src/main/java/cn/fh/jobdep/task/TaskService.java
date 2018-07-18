@@ -64,7 +64,6 @@ public class TaskService {
         return taskGraph;
     }
 
-
     /**
      * 保存任务图
      * @param g
@@ -72,6 +71,20 @@ public class TaskService {
      */
     public Long saveGraph(AdjTaskGraph g) {
         return taskStore.saveTask(g);
+    }
+
+    /**
+     * 查询
+     * @param taskId
+     * @return
+     */
+    public AdjTaskGraph queryGraph(Long taskId) {
+        AdjTaskGraph g = taskStore.getTaskGraph(taskId);
+        if (null == g) {
+            throw new JobException("not found");
+        }
+
+        return g;
     }
 
     /**

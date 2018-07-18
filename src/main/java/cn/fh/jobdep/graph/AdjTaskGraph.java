@@ -129,15 +129,6 @@ public class AdjTaskGraph {
      * @return
      */
     public List<JobVertex> getRoots() {
-//        List<JobVertex> result = new ArrayList<>();
-//        for (JobVertex job : this.reversedAdj) {
-//            if (CollectionUtils.isEmpty(job.getToList())) {
-//                result.add(this.adj[job.getIndex()]);
-//            }
-//        }
-//
-//        return result;
-
         List<Integer> idList = new ArrayList<>();
         for (Matrix.MatrixRow row : this.reversedAdj) {
             if (row.getList().isEmpty()) {
@@ -155,13 +146,6 @@ public class AdjTaskGraph {
      * @return
      */
     public List<JobVertex> getLasts() {
-
-//        for (JobVertex job : this.adj) {
-//            if (CollectionUtils.isEmpty(job.getToList())) {
-//                result.add(job);
-//            }
-//        }
-
         List<Integer> idList = new ArrayList<>();
         for (Matrix.MatrixRow row : this.adj) {
             if (row.getList().isEmpty()) {
@@ -180,9 +164,6 @@ public class AdjTaskGraph {
      * @param result
      */
     public void setResult(int vertex, String result) {
-//        doSetResult(vertex, result, this.adj);
-//        doSetResult(vertex, result, this.reversedAdj);
-
         JobVertex job = vertexMap.get(vertex);
         if (null == job) {
             return;
@@ -197,11 +178,6 @@ public class AdjTaskGraph {
      * @return
      */
     public JobVertex getJobVertex(int vertex) {
-//        if (!rangeCheck(vertex)) {
-//            return null;
-//        }
-//
-//        return this.adj[vertex];
         return vertexMap.get(vertex);
     }
 
