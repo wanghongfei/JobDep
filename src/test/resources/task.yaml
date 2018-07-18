@@ -30,5 +30,5 @@ job5:
     - job6
 
 job6:
-  triggerUrl: "trigger"
+  triggerUrl: "http://job6.com/trigger"
   notifyUrl: "http://job6.com/notify"

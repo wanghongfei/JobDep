@@ -192,7 +192,11 @@ public class TaskService {
 
         } catch (Exception e) {
             g.changeTaskStatus(JobStatus.FAILED);
-            taskStore.updateTask(taskId, g, "failed to trigger next job " + job.getName() + ", reason = " + e.getMessage());
+
+            String reason = "failed to trigger next job " + job.getName() + ", reason = " + e.getMessage();
+            taskStore.updateTask(taskId, g, reason);
+
+            log.info(reason);
 
             return false;
         }

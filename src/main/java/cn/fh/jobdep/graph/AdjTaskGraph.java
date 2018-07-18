@@ -303,6 +303,9 @@ public class AdjTaskGraph {
         adj.addY(from.getIndex(), to.getIndex());
     }
 
+    /**
+     * 对图进行json序列化时需要构造此类的对象进行序列化
+     */
     @Data
     @AllArgsConstructor
     @NoArgsConstructor
