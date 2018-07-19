@@ -82,6 +82,26 @@ job6:
 
 
 
+## MySQL建表
+
+只使用一张表:
+
+```sql
+CREATE TABLE IF NOT EXISTS `jobdep`.`task` (
+  `id` BIGINT(20) NOT NULL AUTO_INCREMENT,
+  `create_time` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `update_time` DATETIME NOT NULL DEFAULT '1970-01-01 00:00:00',
+  `graph` TEXT NOT NULL DEFAULT '' COMMENT 'DAG json',
+  `status` INT NOT NULL DEFAULT 0 COMMENT '0: 新建, 1: 运行中, 2:完成 3:失败',
+  `message` VARCHAR(200) NOT NULL DEFAULT '' COMMENT '如果Task运行中，则保存最近一次完成的任务的结果, 如果失败则保存失败原因',
+  PRIMARY KEY (`id`))
+ENGINE = InnoDB
+```
+
+
+
+
+
 ## 接口
 
 ### 提交Task
